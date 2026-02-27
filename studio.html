@@ -377,6 +377,11 @@
             </div>
 
             <div class="form-group">
+                <label class="field-label">Base Production Unit ($50k–$1M)</label>
+                <input type="number" id="proj-base-unit" value="200000" min="50000" max="1000000" step="10000" oninput="updateCostPreview()">
+            </div>
+
+            <div class="form-group">
                 <label class="field-label">Title</label>
                 <input type="text" id="proj-title" placeholder="e.g., The Final Arc">
             </div>
@@ -727,7 +732,7 @@ function populateDropdowns() {
     state.talent.forEach(t => {
         if (t.role === 'Director' && t.status === 'Idle')
             dirDrop.innerHTML += `<option value="${t.id}" ${curDir == t.id ? 'selected' : ''}>${t.name} ($${t.salary.toLocaleString()})</option>`;
-        if (t.role === 'Writer' && t.status === 'Idle')
+        if (t.role === 'Writer')
             writDrop.innerHTML += `<option value="${t.id}" ${curWrit == t.id ? 'selected' : ''}>${t.name} ($${t.salary.toLocaleString()})</option>`;
     });
 }
@@ -746,7 +751,8 @@ function computeCost() {
     let totalMin = hr * 60 + min;
     if (totalMin < 1) totalMin = 1;
     const totalHours = (totalMin / 60) * eps;
-    const k = (type === 'Anime') ? 25000 : 200000;
+    const baseUnitInput = parseInt(document.getElementById('proj-base-unit')?.value);
+    const k = Math.min(1000000, Math.max(50000, Number.isFinite(baseUnitInput) ? baseUnitInput : 200000));
     const paceVal = parseInt(document.getElementById('proj-pace')?.value) || 3;
     const costMults = {1: 0.5, 2: 0.75, 3: 1.0, 4: 1.25, 5: 2.0};
     const paceCostMult = costMults[paceVal];
@@ -870,7 +876,12 @@ function startProduction() {
         const actorId = row.querySelector('.actor-select').value;
         if (actorId) involvedIds.push(parseInt(actorId));
     });
-    state.talent.forEach(t => { if (involvedIds.includes(t.id)) { t.status = 'Working'; t.project = title; } });
+    state.talent.forEach(t => {
+        if (involvedIds.includes(t.id) && t.role !== 'Writer') {
+            t.status = 'Working';
+            t.project = title;
+        }
+    });
     const type  = document.getElementById('proj-type').value;
     const genre = document.getElementById('proj-genre').value;
     const paceVal = parseInt(document.getElementById('proj-pace').value) || 3;
