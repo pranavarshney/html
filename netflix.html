@@ -655,33 +655,55 @@ let platform = { subscribers: 0, subPrice: 15, rows: ['New this week', 'Trending
 let currentFilter = 'all';
 let prevSubscribers = 0;
 
+function normalizePlatform(rawPlatform = {}) {
+    return {
+        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
+        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
+        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
+        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
+    };
+}
+
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
+}
+
 function init() { loadGame(); recalcSubscribers(); renderAll(); }
 
 function loadGame() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) {
-        studioSave = { state: { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] } };
-        studioSave.platform = platform;
+        studioSave = { state: normalizeState() };
+        studioSave.platform = normalizePlatform(platform);
+        platform = studioSave.platform;
         return;
     }
     studioSave = JSON.parse(raw);
-    if (!studioSave.state) studioSave.state = { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] };
-    if (studioSave.platform) platform = studioSave.platform;
-    else studioSave.platform = platform;
-    if (!platform.subPrice) platform.subPrice = 15;
+    studioSave.state = normalizeState(studioSave.state);
+    platform = normalizePlatform(studioSave.platform);
+    studioSave.platform = platform;
 }
 
-function persistSave() {
+function persistSave(saveState = false) {
     let masterSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
+
     masterSave.platform = platform;
-    masterSave.state = studioSave.state;
+    if (saveState || !masterSave.state) {
+        masterSave.state = studioSave.state;
+    }
     localStorage.setItem(SAVE_KEY, JSON.stringify(masterSave));
 }
 
 function recalcSubscribers() {
     prevSubscribers = platform.subscribers;
     let total = 0;
-    platform.publishedCatalog.forEach(p => {
+    (platform.publishedCatalog || []).forEach(p => {
         const vis = parseInt(p.stats?.vis) || 1;
         const story = parseInt(p.stats?.story) || 1;
         const vfx = parseInt(p.stats?.vfx) || 1;
@@ -741,7 +763,7 @@ function updatePrice(val) {
     else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
     recalcSubscribers();
     renderAdmin();
-    persistSave();
+    persistSave(false);
 }
 
 function collectRevenue() {
@@ -769,7 +791,7 @@ function collectRevenue() {
             (studioSave.state.talent || []).forEach(t => { if ((fp.involvedTalent || []).includes(t.id)) { t.status = 'Idle'; t.project = ''; } });
         }
     }
-    persistSave(); renderAll();
+    persistSave(true); renderAll();
     toast(`💰 Collected $${income.toLocaleString()}!`, 'success');
 }
 
@@ -822,7 +844,7 @@ function confirmPublish() {
     }
 
     platform.publishedCatalog.unshift(project);
-    recalcSubscribers(); persistSave(); renderAll();
+    recalcSubscribers(); persistSave(true); renderAll();
     
     document.getElementById('poster-url').value = '';
     document.getElementById('feature-flag').checked = false;
@@ -845,13 +867,13 @@ function unpublishProject(title) {
     const idx = platform.publishedCatalog.findIndex(p => p.title === title);
     const project = platform.publishedCatalog.splice(idx, 1)[0];
     studioSave.state.finishedCatalog.unshift(project);
-    recalcSubscribers(); persistSave(); renderAll();
+    recalcSubscribers(); persistSave(true); renderAll();
     toast(`"${title}" moved back to vault.`);
 }
 
 function createRow() {
     const name = document.getElementById('new-row-input').value.trim();
-    if (name && !platform.rows.includes(name)) { platform.rows.push(name); persistSave(); renderAll(); }
+    if (name && !platform.rows.includes(name)) { platform.rows.push(name); persistSave(false); renderAll(); }
     document.getElementById('new-row-input').value = '';
 }
 
@@ -863,7 +885,7 @@ function deleteRow(name) {
     }
     platform.publishedCatalog.filter(p => p.row === name).forEach(p => p.row = platform.rows.filter(r => r !== name)[0]);
     platform.rows = platform.rows.filter(r => r !== name);
-    persistSave(); renderAll();
+    persistSave(false); renderAll();
 }
 
 function renderViewer() {
