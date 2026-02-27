@@ -655,24 +655,54 @@ let platform = { subscribers: 0, subPrice: 15, rows: ['New this week', 'Trending
 let currentFilter = 'all';
 let prevSubscribers = 0;
 
+function normalizePlatform(rawPlatform = {}) {
+    return {
+        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
+        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
+        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
+        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
+    };
+}
+
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
+}
+
 function init() { loadGame(); recalcSubscribers(); renderAll(); }
 
 function loadGame() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) {
-        studioSave = { state: { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] } };
-        studioSave.platform = platform;
+        studioSave = { state: normalizeState() };
+        studioSave.platform = normalizePlatform(platform);
+        platform = studioSave.platform;
         return;
     }
     studioSave = JSON.parse(raw);
-    if (!studioSave.state) studioSave.state = { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] };
-    if (studioSave.platform) platform = studioSave.platform;
-    else studioSave.platform = platform;
-    if (!platform.subPrice) platform.subPrice = 15;
+    studioSave.state = normalizeState(studioSave.state);
+    platform = normalizePlatform(studioSave.platform);
+    studioSave.platform = platform;
 }
 
 function persistSave() {
     let masterSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
+
+    // Never let an older tab overwrite newer budget/week progress.
+    if (masterSave.state) {
+        const latestState = normalizeState(masterSave.state);
+        studioSave.state.budget = Math.max(studioSave.state.budget || 0, latestState.budget);
+        studioSave.state.week = Math.max(studioSave.state.week || 1, latestState.week);
+        if (latestState.talent.length > studioSave.state.talent.length) studioSave.state.talent = latestState.talent;
+        if (latestState.activeProjects.length > studioSave.state.activeProjects.length) studioSave.state.activeProjects = latestState.activeProjects;
+        if (latestState.finishedCatalog.length > studioSave.state.finishedCatalog.length) studioSave.state.finishedCatalog = latestState.finishedCatalog;
+    }
+
     masterSave.platform = platform;
     masterSave.state = studioSave.state;
     localStorage.setItem(SAVE_KEY, JSON.stringify(masterSave));
@@ -681,7 +711,7 @@ function persistSave() {
 function recalcSubscribers() {
     prevSubscribers = platform.subscribers;
     let total = 0;
-    platform.publishedCatalog.forEach(p => {
+    (platform.publishedCatalog || []).forEach(p => {
         const vis = parseInt(p.stats?.vis) || 1;
         const story = parseInt(p.stats?.story) || 1;
         const vfx = parseInt(p.stats?.vfx) || 1;
