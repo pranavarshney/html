@@ -566,6 +566,16 @@ let state = {
 
 let undoStack = [];
 
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
+}
+
 function init() {
     loadGame();
     updateUI();
@@ -1021,14 +1031,21 @@ function toast(msg, type = '') {
 
 function saveGame() {
     let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
+    state = normalizeState(state);
     // FIX: If Netflix has collected revenue since Studio last loaded, 
     // localStorage will have a higher budget/week than our in-memory state.
     // Preserve whichever budget is higher so Netflix earnings are never overwritten.
     if (masterSave.state) {
-        const latestBudget = masterSave.state.budget || 0;
-        const latestWeek = masterSave.state.week || 1;
+        const latestState = normalizeState(masterSave.state);
+        const latestBudget = latestState.budget;
+        const latestWeek = latestState.week;
         if (latestBudget > state.budget) state.budget = latestBudget;
         if (latestWeek > state.week) state.week = latestWeek;
+
+        // Preserve arrays with more complete data if this tab is stale.
+        if (latestState.talent.length > state.talent.length) state.talent = latestState.talent;
+        if (latestState.activeProjects.length > state.activeProjects.length) state.activeProjects = latestState.activeProjects;
+        if (latestState.finishedCatalog.length > state.finishedCatalog.length) state.finishedCatalog = latestState.finishedCatalog;
     }
     masterSave.state = state;
     masterSave.undoStack = undoStack;
@@ -1042,9 +1059,7 @@ function loadGame() {
         try {
             let masterSave = JSON.parse(saved);
             if (masterSave.state) {
-                if (!masterSave.state.budget) masterSave.state.budget = 50000000;
-                if (!masterSave.state.week) masterSave.state.week = 1;
-                state = masterSave.state;
+                state = normalizeState(masterSave.state);
             }
             undoStack = masterSave.undoStack || [];
         } catch(e) { console.warn('Save corrupted, starting fresh.'); }

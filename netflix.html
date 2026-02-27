@@ -664,18 +664,28 @@ function normalizePlatform(rawPlatform = {}) {
     };
 }
 
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
+}
+
 function init() { loadGame(); recalcSubscribers(); renderAll(); }
 
 function loadGame() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) {
-        studioSave = { state: { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] } };
+        studioSave = { state: normalizeState() };
         studioSave.platform = normalizePlatform(platform);
         platform = studioSave.platform;
         return;
     }
     studioSave = JSON.parse(raw);
-    if (!studioSave.state) studioSave.state = { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] };
+    studioSave.state = normalizeState(studioSave.state);
     platform = normalizePlatform(studioSave.platform);
     studioSave.platform = platform;
 }
@@ -685,8 +695,12 @@ function persistSave() {
 
     // Never let an older tab overwrite newer budget/week progress.
     if (masterSave.state) {
-        studioSave.state.budget = Math.max(studioSave.state.budget || 0, masterSave.state.budget || 0);
-        studioSave.state.week = Math.max(studioSave.state.week || 1, masterSave.state.week || 1);
+        const latestState = normalizeState(masterSave.state);
+        studioSave.state.budget = Math.max(studioSave.state.budget || 0, latestState.budget);
+        studioSave.state.week = Math.max(studioSave.state.week || 1, latestState.week);
+        if (latestState.talent.length > studioSave.state.talent.length) studioSave.state.talent = latestState.talent;
+        if (latestState.activeProjects.length > studioSave.state.activeProjects.length) studioSave.state.activeProjects = latestState.activeProjects;
+        if (latestState.finishedCatalog.length > studioSave.state.finishedCatalog.length) studioSave.state.finishedCatalog = latestState.finishedCatalog;
     }
 
     masterSave.platform = platform;

@@ -118,15 +118,19 @@
         } else {
             save = JSON.parse(raw);
             // Patch older saves just in case
-            if(!save.state) save.state = { week: 1, budget: 50000000 };
-            if(!save.state.budget) save.state.budget = 50000000; 
+            if(!save.state) { save.state = { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] }; patched = true; }
+            if(!Number.isFinite(save.state.budget)) { save.state.budget = 50000000; patched = true; }
+            if(!Number.isFinite(save.state.week)) { save.state.week = 1; patched = true; }
+            if(!Array.isArray(save.state.talent)) { save.state.talent = []; patched = true; }
+            if(!Array.isArray(save.state.activeProjects)) { save.state.activeProjects = []; patched = true; }
+            if(!Array.isArray(save.state.finishedCatalog)) { save.state.finishedCatalog = []; patched = true; }
             if(!save.platform) {
                 save.platform = { subscribers: 0, subPrice: 15, rows: ['New this week', 'Trending Now'], publishedCatalog: [] };
                 patched = true;
             }
             if(!Array.isArray(save.platform.publishedCatalog)) { save.platform.publishedCatalog = []; patched = true; }
             if(!Array.isArray(save.platform.rows)) { save.platform.rows = ['New this week', 'Trending Now']; patched = true; }
-            if(!save.platform.subPrice) { save.platform.subPrice = 15; patched = true; }
+            if(!Number.isFinite(save.platform.subPrice)) { save.platform.subPrice = 15; patched = true; }
             if (patched) localStorage.setItem(SAVE_KEY, JSON.stringify(save));
         }
 
