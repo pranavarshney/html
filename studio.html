@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Hub - Creator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0d0f;
+            --surface: #161618;
+            --surface2: #1e1e22;
+            --surface3: #26262c;
+            --border: #2e2e36;
+            --text: #f0f0f2;
+            --muted: #7a7a8c;
+            --accent: #e8003d;
+            --accent-dim: rgba(232,0,61,0.15);
+            --accent-hover: #ff1a52;
+            --green: #00c97a;
+            --orange: #ff8c00;
+            --blue: #4da6ff;
+            --radius: 6px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── TOP BAR ── */
+        .top-bar {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: rgba(13,13,15,0.97);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            height: 56px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 200;
+            gap: 12px;
+        }
+
+        .top-bar-left { display: flex; align-items: center; gap: 16px; }
+        .top-bar-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--accent); white-space: nowrap; }
+        .back-link {
+            font-size: 12px; color: var(--muted); text-decoration: none;
+            display: flex; align-items: center; gap: 4px;
+            background: var(--surface2); border: 1px solid var(--border);
+            padding: 4px 10px; border-radius: var(--radius);
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .back-link:hover { color: var(--text); border-color: #444; }
+
+        .top-bar-stats { display: flex; gap: 20px; align-items: center; flex: 1; justify-content: center; }
+        .stat-chip { display: flex; flex-direction: column; align-items: center; }
+        .stat-chip .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-chip .value { font-size: 15px; font-weight: 700; }
+        .stat-chip .value.budget { color: var(--green); }
+        .stat-chip .value.week { color: var(--blue); }
+        .stat-chip .value.subs { color: var(--accent); }
+
+        .top-bar-actions { display: flex; gap: 8px; align-items: center; }
+
+        /* Next Week — dominant */
+        .btn-next-week {
+            background: var(--accent); color: #fff;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+            border: none; border-radius: var(--radius); cursor: pointer;
+            padding: 9px 20px; transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+            box-shadow: 0 0 0 0 rgba(232,0,61,0);
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-next-week:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,0,61,0.4); }
+        .btn-next-week.pulse { animation: nextPulse 2s infinite; }
+        @keyframes nextPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(232,0,61,0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(232,0,61,0); }
+        }
+
+        .btn-util {
+            font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+            background: var(--surface3); color: var(--muted); border: 1px solid var(--border);
+            border-radius: var(--radius); cursor: pointer; padding: 6px 12px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-util:hover { background: #333; color: var(--text); }
+
+        /* ── LAYOUT ── */
+        .app {
+            margin-top: 56px;
+            display: grid;
+            grid-template-columns: 1fr 340px 280px;
+            grid-template-rows: auto 1fr;
+            gap: 16px;
+            padding: 16px;
+            min-height: calc(100vh - 56px);
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .panel-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 18px;
+            letter-spacing: 2px;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .panel-title-count {
+            font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+            background: var(--surface3); color: var(--muted);
+            padding: 2px 8px; border-radius: 10px; letter-spacing: 0;
+        }
+
+        .form-group { margin-bottom: 14px; }
+        label.field-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 5px; }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%; padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--radius); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; transition: border-color 0.15s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: none; border-color: var(--accent); }
+        select option { background: var(--surface2); }
+        .input-row { display: flex; gap: 8px; }
+        .input-row > * { flex: 1; }
+
+        /* ── QUALITY SLIDERS ── */
+        .slider-block { margin-bottom: 12px; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .slider-header .field-label { margin: 0; }
+        .slider-right { display: flex; align-items: center; gap: 8px; }
+        .slider-value { font-size: 14px; font-weight: 700; color: var(--accent); min-width: 20px; text-align: right; }
+        .slider-tier {
+            font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+            text-transform: uppercase; letter-spacing: 0.5px; min-width: 72px; text-align: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tier-budget  { background: rgba(122,122,140,0.15); color: var(--muted); }
+        .tier-standard{ background: rgba(77,166,255,0.15); color: var(--blue); }
+        .tier-premium { background: rgba(255,140,0,0.15);  color: var(--orange); }
+        .tier-blockbuster { background: rgba(232,0,61,0.2); color: var(--accent); }
+
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: var(--surface3); border-radius: 2px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; transition: transform 0.1s; }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+        /* ── PACE ── */
+        .pace-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); }
+        .pace-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .pace-label-text { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); }
+        .pace-val { font-size: 11px; font-weight: 600; color: var(--muted); }
+        .crunch-warning {
+            display: none; align-items: center; gap: 6px; margin-top: 8px;
+            background: rgba(232,0,61,0.1); border: 1px solid rgba(232,0,61,0.25);
+            border-radius: var(--radius); padding: 7px 10px;
+            font-size: 12px; color: #ff6666; font-weight: 600;
+        }
+        .crunch-warning.show { display: flex; }
+
+        /* ── CAST ── */
+        .cast-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+        .cast-row select { flex: 2; }
+        .cast-row .role-sel { flex: 1; }
+        .cast-row .btn-icon { flex: none; width: 30px; height: 30px; padding: 0; border-radius: 4px; background: var(--surface3); color: var(--muted); font-size: 14px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+        .cast-row .btn-icon:hover { background: var(--accent); color: #fff; }
+
+        /* ── COST BOX ── */
+        .cost-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-top: 16px; }
+        .cost-box-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
+        .cost-line { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 8px; color: var(--muted); gap: 8px; }
+        .cost-line-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+        .cost-line-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cost-bar-track { flex: 1; height: 3px; background: var(--surface3); border-radius: 2px; overflow: hidden; min-width: 40px; }
+        .cost-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.3s; }
+        .cost-line-val { color: var(--text); font-weight: 500; white-space: nowrap; }
+        .cost-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 8px; }
+        .cost-total .total-val { color: var(--accent); }
+        .cost-total .total-val.over-budget { color: #ff4444; }
+        .cost-remaining { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); }
+        .cost-remaining .rem-val { font-weight: 600; }
+        .cost-remaining .rem-val.low { color: #ffb400; }
+        .cost-remaining .rem-val.danger { color: #ff4444; }
+        .cost-remaining .rem-val.good { color: var(--green); }
+
+        /* IMDb preview */
+        .imdb-preview {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 10px; padding: 10px; background: var(--surface3);
+            border-radius: var(--radius); border: 1px solid var(--border);
+        }
+        .imdb-preview-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+        .imdb-preview-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; }
+        .imdb-badge-mini { background: #f5c518; color: black; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 900; margin-right: 6px; }
+        .imdb-sub-bump { font-size: 11px; color: var(--green); font-weight: 600; }
+
+        .warning-tag { display: inline-block; background: rgba(255,68,68,0.15); color: #ff6666; font-size: 11px; padding: 2px 7px; border-radius: 3px; margin-left: 8px; }
+        .duplicate-warning { font-size: 11px; color: #ff8888; margin-top: 3px; }
+
+        button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; border: none; border-radius: var(--radius); cursor: pointer; padding: 8px 14px; transition: all 0.15s; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:disabled { background: #444; color: #777; cursor: not-allowed; }
+        .btn-secondary { background: var(--surface3); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #333; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+        .form-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .checkbox-row input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+        .checkbox-row label { margin: 0; font-size: 13px; color: var(--muted); cursor: pointer; }
+        .hidden { display: none !important; }
+
+        /* ── PROJECT CARDS ── */
+        .project-card {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 12px; margin-bottom: 10px;
+            position: relative; overflow: hidden; transition: border-color 0.3s;
+        }
+        .project-card::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px; background: var(--accent); }
+        .project-card.near-finish { border-color: #ffb400; animation: nearFinish 1.8s ease-in-out infinite; }
+        .project-card.near-finish::before { background: #ffb400; }
+        @keyframes nearFinish {
+            0%,100% { box-shadow: 0 0 0 0 rgba(255,180,0,0); }
+            50% { box-shadow: 0 0 12px 2px rgba(255,180,0,0.2); }
+        }
+        .project-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+        .project-card-title { font-weight: 600; font-size: 14px; }
+        .pace-badge {
+            font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
+            text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
+        }
+        .pace-crunch { background: rgba(232,0,61,0.15); color: var(--accent); }
+        .pace-relaxed { background: rgba(77,166,255,0.1); color: var(--blue); }
+        .project-card-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+        .project-talent-row { font-size: 11px; color: #5a5a6e; margin-bottom: 8px; line-height: 1.5; }
+        .weeks-bar { height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
+        .weeks-bar-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+        .project-card.near-finish .weeks-bar-fill { background: #ffb400; }
+        .weeks-label { font-size: 11px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between; }
+        .weeks-label .near-text { color: #ffb400; font-weight: 700; }
+
+        /* ── ROSTER ── */
+        .roster-summary {
+            background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 10px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .roster-summary-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+        .roster-summary-val { font-size: 15px; font-weight: 700; color: var(--orange); }
+
+        .roster-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; }
+        .roster-name { font-size: 13px; font-weight: 600; }
+        .roster-role { font-size: 11px; color: var(--muted); }
+        .roster-salary { font-size: 11px; color: var(--muted); margin-top: 2px; }
+        .roster-project { font-size: 11px; color: var(--orange); margin-top: 2px; }
+        .roster-power { font-size: 11px; color: var(--blue); margin-top: 2px; font-weight: 600; }
+        .badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-idle { background: rgba(0,201,122,0.15); color: var(--green); }
+        .badge-working { background: rgba(255,140,0,0.15); color: var(--orange); }
+
+        /* ── CATALOG ── */
+        .catalog-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px; }
+        .catalog-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        .catalog-card-title { font-size: 13px; font-weight: 600; }
+        .catalog-card-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+        .catalog-card-footer { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+        .catalog-stars { font-size: 11px; color: #ffd700; }
+        .catalog-week { font-size: 10px; color: var(--muted); }
+        .published-badge { font-size: 10px; font-weight: 700; background: rgba(255,140,0,0.15); color: var(--orange); padding: 2px 6px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+        .vault-badge { font-size: 10px; font-weight: 700; background: rgba(0,201,122,0.1); color: var(--green); padding: 2px 6px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast { background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; max-width: 320px; animation: toast-in 0.2s ease, toast-out 0.3s ease 3.7s forwards; pointer-events: none; }
+        .toast.toast-success { border-left-color: var(--green); }
+        .toast.toast-warn { border-left-color: var(--orange); }
+        @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toast-out { from { opacity: 1; } to { opacity: 0; } }
+
+        .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 14px 0 8px; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+        .col-side { display: flex; flex-direction: column; gap: 16px; max-height: calc(100vh - 88px); }
+        .col-side .panel { overflow-y: auto; flex: 1; min-height: 0; }
+        .col-main { overflow-y: auto; max-height: calc(100vh - 88px); }
+        .empty-state { text-align: center; color: var(--muted); font-size: 13px; padding: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="top-bar-left">
+        <div class="top-bar-logo">🎬 Studio Hub</div>
+        <a class="back-link" href="index.html">← Dashboard</a>
+    </div>
+    <div class="top-bar-stats">
+        <div class="stat-chip">
+            <span class="label">Week</span>
+            <span class="value week" id="week-display">1</span>
+        </div>
+        <div class="stat-chip">
+            <span class="label">Budget</span>
+            <span class="value budget" id="budget-display">$50,000,000</span>
+        </div>
+        <div class="stat-chip">
+            <span class="label">In Production</span>
+            <span class="value" id="active-count">0</span>
+        </div>
+        <div class="stat-chip">
+            <span class="label">StreamVault Subs</span>
+            <span class="value subs" id="subs-display">0</span>
+        </div>
+    </div>
+    <div class="top-bar-actions">
+        <button class="btn-next-week" id="next-week-btn" onclick="advanceWeek()">⏩ Next Week</button>
+        <button class="btn-util" onclick="undoWeek()">↩ Undo</button>
+        <button class="btn-util" onclick="saveGame()">💾 Save</button>
+        <button class="btn-util" onclick="resetGame()">🔄 Reset</button>
+    </div>
+</div>
+
+<div class="app">
+    <!-- MAIN FORM COLUMN -->
+    <div class="col-main">
+        <div class="panel">
+            <div class="panel-title">Create New Project</div>
+
+            <div class="input-row">
+                <div class="form-group">
+                    <label class="field-label">Project Type</label>
+                    <select id="proj-type" onchange="toggleEpisodes(); updateCostPreview()">
+                        <option value="Movie">🎬 Movie</option>
+                        <option value="Anime">⚔️ Anime</option>
+                        <option value="Web Series">📺 Web Series</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Genre</label>
+                    <select id="proj-genre">
+                        <option value="Action">Action</option>
+                        <option value="Adventure">Adventure</option>
+                        <option value="Comedy">Comedy</option>
+                        <option value="Crime">Crime</option>
+                        <option value="Documentary">Documentary</option>
+                        <option value="Drama">Drama</option>
+                        <option value="Fantasy">Fantasy</option>
+                        <option value="Horror">Horror</option>
+                        <option value="Musical">Musical</option>
+                        <option value="Mystery">Mystery</option>
+                        <option value="Romance">Romance</option>
+                        <option value="Sci-Fi">Sci-Fi</option>
+                        <option value="Slice of Life">Slice of Life</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Thriller">Thriller</option>
+                        <option value="War">War</option>
+                        <option value="Western">Western</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="episode-group">
+                <label class="field-label">Episodes <small style="color:var(--muted)">(multiplies runtime & cost)</small></label>
+                <input type="number" id="proj-episodes" value="12" min="1" oninput="updateCostPreview()">
+            </div>
+
+            <div class="form-group">
+                <label class="field-label">Title</label>
+                <input type="text" id="proj-title" placeholder="e.g., The Final Arc">
+            </div>
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="proj-sequel">
+                <label for="proj-sequel">📺 Sequel / continuation</label>
+            </div>
+
+            <div class="form-group">
+                <label class="field-label">Runtime per episode/movie</label>
+                <div class="input-row">
+                    <input type="number" id="proj-hr" placeholder="Hours" min="0" value="2" oninput="clampRuntime(); updateCostPreview()">
+                    <input type="number" id="proj-min" placeholder="Minutes" min="0" max="59" value="0" oninput="clampRuntime(); updateCostPreview()">
+                </div>
+                <div id="runtime-warning" class="duplicate-warning hidden">⚠️ Runtime of 0 makes production free — setting minimum to 1 min.</div>
+            </div>
+
+            <div class="section-title">Production Quality (1–15)</div>
+
+            <div class="slider-block">
+                <div class="slider-header">
+                    <label class="field-label">Visuals</label>
+                    <div class="slider-right">
+                        <span class="slider-tier tier-standard" id="vis-tier">Standard</span>
+                        <span class="slider-value" id="vis-val">8</span>
+                    </div>
+                </div>
+                <input type="range" id="proj-vis" min="1" max="15" value="8" oninput="updateCostPreview(); syncSlider('vis')">
+            </div>
+
+            <div class="slider-block">
+                <div class="slider-header">
+                    <label class="field-label">Story</label>
+                    <div class="slider-right">
+                        <span class="slider-tier tier-standard" id="story-tier">Standard</span>
+                        <span class="slider-value" id="story-val">8</span>
+                    </div>
+                </div>
+                <input type="range" id="proj-story" min="1" max="15" value="8" oninput="updateCostPreview(); syncSlider('story')">
+            </div>
+
+            <div class="slider-block">
+                <div class="slider-header">
+                    <label class="field-label">Anim/VFX</label>
+                    <div class="slider-right">
+                        <span class="slider-tier tier-standard" id="vfx-tier">Standard</span>
+                        <span class="slider-value" id="vfx-val">8</span>
+                    </div>
+                </div>
+                <input type="range" id="proj-vfx" min="1" max="15" value="8" oninput="updateCostPreview(); syncSlider('vfx')">
+            </div>
+
+            <div class="slider-block">
+                <div class="slider-header">
+                    <label class="field-label">Post-Prod</label>
+                    <div class="slider-right">
+                        <span class="slider-tier tier-standard" id="post-tier">Standard</span>
+                        <span class="slider-value" id="post-val">8</span>
+                    </div>
+                </div>
+                <input type="range" id="proj-post" min="1" max="15" value="8" oninput="updateCostPreview(); syncSlider('post')">
+            </div>
+
+            <div class="slider-block">
+                <div class="slider-header">
+                    <label class="field-label">Music</label>
+                    <div class="slider-right">
+                        <span class="slider-tier tier-standard" id="music-tier">Standard</span>
+                        <span class="slider-value" id="music-val">8</span>
+                    </div>
+                </div>
+                <input type="range" id="proj-music" min="1" max="15" value="8" oninput="updateCostPreview(); syncSlider('music')">
+            </div>
+
+            <div class="pace-section">
+                <div class="pace-header">
+                    <span class="pace-label-text">Production Pace</span>
+                    <span class="pace-val" id="pace-val">Normal (1x Cost/Time)</span>
+                </div>
+                <input type="range" id="proj-pace" min="1" max="5" value="3" oninput="updateCostPreview(); updatePaceLabel()" style="width: 100%;">
+                <div class="crunch-warning" id="crunch-warning">
+                    🔥 Crunch mode active — talent risk increases and costs double. Use sparingly.
+                </div>
+            </div>
+
+            <div class="section-title">Crew & Cast</div>
+            <div class="input-row">
+                <div class="form-group">
+                    <label class="field-label">Director</label>
+                    <select id="proj-director" onchange="updateCostPreview()"></select>
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Screenwriter / Novelist</label>
+                    <select id="proj-writer" onchange="updateCostPreview()"></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="field-label">Actors</label>
+                <div id="cast-container"></div>
+                <div id="duplicate-actor-warning" class="duplicate-warning hidden">⚠️ Same actor selected in multiple roles.</div>
+                <button class="btn-secondary btn-sm" style="margin-top:6px" onclick="addCastRow()">+ Add Actor</button>
+            </div>
+
+            <div class="cost-box">
+                <div class="cost-box-title">Cost Breakdown</div>
+                <div id="cost-breakdown-lines"></div>
+                <div class="cost-total">
+                    <span>Total Estimated Cost</span>
+                    <span class="total-val" id="total-cost-display">$0</span>
+                </div>
+                <div class="cost-remaining">
+                    <span>Budget remaining after</span>
+                    <span class="rem-val good" id="budget-remaining-val">$50,000,000</span>
+                </div>
+                <div id="weeks-preview" style="margin-top:8px; font-size:12px; color: var(--muted);"></div>
+                <div class="imdb-preview">
+                    <div>
+                        <div class="imdb-preview-label">Projected IMDb Score</div>
+                        <div class="imdb-sub-bump" id="imdb-sub-bump-preview">~+0 subscribers on StreamVault</div>
+                    </div>
+                    <div class="imdb-preview-val">
+                        <span class="imdb-badge-mini">IMDb</span><span id="imdb-preview-val">5.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-footer">
+                <span style="font-size:12px; color:var(--muted)" id="budget-status"></span>
+                <button class="btn-primary" id="start-btn" onclick="startProduction()">🎬 Start Production</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MIDDLE COLUMN -->
+    <div class="col-side">
+        <div class="panel">
+            <div class="panel-title">
+                In Production
+                <span class="panel-title-count" id="active-count-badge">0</span>
+            </div>
+            <div id="active-projects-list">
+                <div class="empty-state">No active projects</div>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="panel-title">
+                Finished Catalog
+                <span class="panel-title-count" id="catalog-count-badge">0</span>
+            </div>
+            <div id="catalog-list">
+                <div class="empty-state">Nothing released yet</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-side">
+        <div class="panel">
+            <div class="panel-title">
+                Talent Roster
+                <span class="panel-title-count" id="roster-count-badge">0</span>
+            </div>
+            <div class="roster-summary">
+                <span class="roster-summary-label">Total Roster Payroll</span>
+                <span class="roster-summary-val" id="roster-payroll">$0</span>
+            </div>
+            <div id="roster-list">
+                <div class="empty-state">No talent available.<br>Add some via the Talent Manager!</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ===== STATE =====
+let state = {
+    week: 1,
+    budget: 50000000,
+    talent: [],
+    activeProjects: [],
+    finishedCatalog: []
+};
+
+let undoStack = [];
+
+function init() {
+    loadGame();
+    updateUI();
+    addCastRow();
+    toggleEpisodes();
+    updatePaceLabel();
+    updateCostPreview();
+    syncAllSliders();
+}
+
+function updateUI() {
+    document.getElementById('week-display').innerText = state.week;
+    document.getElementById('budget-display').innerText = '$' + state.budget.toLocaleString();
+    document.getElementById('active-count').innerText = state.activeProjects.length;
+    document.getElementById('active-count-badge').innerText = state.activeProjects.length;
+
+    // StreamVault subs from master save
+    const masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
+    const subs = masterSave.platform?.subscribers || 0;
+    document.getElementById('subs-display').innerText = subs.toLocaleString();
+
+    // Pulse Next Week if any project is 1 week away
+    const nearFinish = state.activeProjects.some(p => p.weeksRemaining <= 1);
+    const btn = document.getElementById('next-week-btn');
+    if (nearFinish) btn.classList.add('pulse'); else btn.classList.remove('pulse');
+
+    populateDropdowns();
+    renderRoster();
+    renderActiveProjects();
+    renderCatalog();
+    updateCostPreview();
+}
+
+function syncSlider(id) {
+    const val = document.getElementById(`proj-${id}`).value;
+    document.getElementById(`${id}-val`).innerText = val;
+    const tierEl = document.getElementById(`${id}-tier`);
+    const v = parseInt(val);
+    if (v <= 4)       { tierEl.textContent = 'Budget';      tierEl.className = 'slider-tier tier-budget'; }
+    else if (v <= 8)  { tierEl.textContent = 'Standard';    tierEl.className = 'slider-tier tier-standard'; }
+    else if (v <= 12) { tierEl.textContent = 'Premium';     tierEl.className = 'slider-tier tier-premium'; }
+    else              { tierEl.textContent = 'Blockbuster'; tierEl.className = 'slider-tier tier-blockbuster'; }
+}
+
+function syncAllSliders() {
+    ['vis','story','vfx','post','music'].forEach(id => syncSlider(id));
+}
+
+function toggleEpisodes() {
+    const type = document.getElementById('proj-type').value;
+    const epGroup = document.getElementById('episode-group');
+    if (type === 'Anime' || type === 'Web Series') epGroup.classList.remove('hidden');
+    else epGroup.classList.add('hidden');
+}
+
+function clampRuntime() {
+    const hr = parseInt(document.getElementById('proj-hr').value) || 0;
+    const min = parseInt(document.getElementById('proj-min').value) || 0;
+    const warn = document.getElementById('runtime-warning');
+    if (hr === 0 && min === 0) warn.classList.remove('hidden');
+    else warn.classList.add('hidden');
+}
+
+function updatePaceLabel() {
+    const val = document.getElementById('proj-pace').value;
+    const labels = {
+        "1": "Relaxed (−50% Cost, +50% Time)",
+        "2": "Steady (−25% Cost, +25% Time)",
+        "3": "Normal (1× Cost/Time)",
+        "4": "Rushed (+25% Cost, −25% Time)",
+        "5": "Crunch (+100% Cost, −50% Time)"
+    };
+    document.getElementById('pace-val').innerText = labels[val];
+    const warn = document.getElementById('crunch-warning');
+    if (val === '5') warn.classList.add('show'); else warn.classList.remove('show');
+}
+
+function getSelectedActorIds() {
+    const ids = [];
+    document.querySelectorAll('.cast-row .actor-select').forEach(sel => { if (sel.value) ids.push(sel.value); });
+    return ids;
+}
+
+function checkDuplicateActors() {
+    const ids = getSelectedActorIds();
+    const unique = new Set(ids);
+    const warn = document.getElementById('duplicate-actor-warning');
+    if (ids.length !== unique.size) { warn.classList.remove('hidden'); return true; }
+    warn.classList.add('hidden'); return false;
+}
+
+function addCastRow() {
+    const container = document.getElementById('cast-container');
+    const row = document.createElement('div');
+    row.className = 'cast-row';
+    const options = state.talent
+        .filter(t => t.role === 'Actor' && t.status === 'Idle')
+        .map(t => `<option value="${t.id}">${t.name} ($${t.salary.toLocaleString()})</option>`)
+        .join('');
+    row.innerHTML = `
+        <select class="actor-select" onchange="updateCostPreview(); checkDuplicateActors()">
+            <option value="">— Select Actor —</option>
+            ${options}
+        </select>
+        <select class="role-select" onchange="updateCostPreview()">
+            <option value="1">Lead (100%)</option>
+            <option value="0.5">Side (50%)</option>
+            <option value="0.1">Extra (10%)</option>
+        </select>
+        <button class="btn-icon" type="button" onclick="this.closest('.cast-row').remove(); updateCostPreview(); checkDuplicateActors()">✕</button>
+    `;
+    container.appendChild(row);
+}
+
+function populateDropdowns() {
+    const dirDrop = document.getElementById('proj-director');
+    const writDrop = document.getElementById('proj-writer');
+    const curDir = dirDrop.value; const curWrit = writDrop.value;
+    dirDrop.innerHTML = '<option value="">— No Director —</option>';
+    writDrop.innerHTML = '<option value="">— No Writer —</option>';
+    state.talent.forEach(t => {
+        if (t.role === 'Director' && t.status === 'Idle')
+            dirDrop.innerHTML += `<option value="${t.id}" ${curDir == t.id ? 'selected' : ''}>${t.name} ($${t.salary.toLocaleString()})</option>`;
+        if (t.role === 'Writer' && t.status === 'Idle')
+            writDrop.innerHTML += `<option value="${t.id}" ${curWrit == t.id ? 'selected' : ''}>${t.name} ($${t.salary.toLocaleString()})</option>`;
+    });
+}
+
+// ===== MASTER MATH ENGINE (unchanged) =====
+function computeCost() {
+    const vis   = parseInt(document.getElementById('proj-vis').value)   || 1;
+    const story = parseInt(document.getElementById('proj-story').value) || 1;
+    const vfx   = parseInt(document.getElementById('proj-vfx').value)   || 1;
+    const post  = parseInt(document.getElementById('proj-post').value)  || 1;
+    const music = parseInt(document.getElementById('proj-music').value) || 1;
+    const type  = document.getElementById('proj-type').value;
+    const eps   = (type !== 'Movie') ? (parseInt(document.getElementById('proj-episodes').value) || 1) : 1;
+    let hr  = parseInt(document.getElementById('proj-hr').value)  || 0;
+    let min = parseInt(document.getElementById('proj-min').value) || 0;
+    let totalMin = hr * 60 + min;
+    if (totalMin < 1) totalMin = 1;
+    const totalHours = (totalMin / 60) * eps;
+    const k = (type === 'Anime') ? 25000 : 200000;
+    const paceVal = parseInt(document.getElementById('proj-pace')?.value) || 3;
+    const costMults = {1: 0.5, 2: 0.75, 3: 1.0, 4: 1.25, 5: 2.0};
+    const paceCostMult = costMults[paceVal];
+    const costVis   = vis * k;
+    const costStory = 0.5 * story * k;
+    const costVfx   = 0.25 * Math.pow(1.75, vfx - 1) * k;
+    const costPost  = 0.5 * post * k;
+    const costMusic = 0.25 * music * k;
+    const prodCostPerHour = costVis + costStory + costVfx + costPost + costMusic;
+    const prodCost = prodCostPerHour * totalHours * paceCostMult;
+    const dirId  = document.getElementById('proj-director').value;
+    const writId = document.getElementById('proj-writer').value;
+    const dirCost  = dirId  ? (state.talent.find(t => t.id == dirId)?.salary  || 0) * eps * paceCostMult : 0;
+    const writCost = writId ? (state.talent.find(t => t.id == writId)?.salary || 0) * eps * paceCostMult : 0;
+    let actorCost = 0;
+    const actorLines = [];
+    document.querySelectorAll('.cast-row').forEach(row => {
+        const actorId = row.querySelector('.actor-select').value;
+        const mult    = parseFloat(row.querySelector('.role-select').value);
+        if (actorId) {
+            const actor = state.talent.find(t => t.id == actorId);
+            if (actor) {
+                const c = actor.salary * mult * eps * paceCostMult;
+                actorCost += c; actorLines.push({ name: actor.name, cost: c, base: actor.salary * mult * eps });
+            }
+        }
+    });
+    let baseWeeksPerHour = 0;
+    if (type === 'Movie') {
+        if (vfx <= 4) baseWeeksPerHour = 16; else if (vfx <= 10) baseWeeksPerHour = 32; else baseWeeksPerHour = 48;
+    } else if (type === 'Web Series') {
+        if (vfx <= 4) baseWeeksPerHour = 2; else if (vfx <= 10) baseWeeksPerHour = 6; else baseWeeksPerHour = 12;
+    } else if (type === 'Anime') {
+        if (vfx <= 4) baseWeeksPerHour = 12; else if (vfx <= 10) baseWeeksPerHour = 16; else baseWeeksPerHour = 20;
+    }
+    const timeMults = {1: 1.5, 2: 1.25, 3: 1.0, 4: 0.75, 5: 0.5};
+    let weeks = Math.ceil((baseWeeksPerHour * totalHours) * timeMults[paceVal]);
+    if (weeks < 1) weeks = 1;
+    return { prodCost, dirCost, writCost, actorCost, actorLines, total: prodCost + dirCost + writCost + actorCost, eps, weeks, vis, story, vfx, post, music };
+}
+
+function updateCostPreview() {
+    const breakdown = computeCost();
+    const { prodCost, dirCost, writCost, actorLines, total, eps, weeks, vis, story, vfx, post, music } = breakdown;
+    const dirId  = document.getElementById('proj-director').value;
+    const writId = document.getElementById('proj-writer').value;
+    const dirName  = dirId  ? state.talent.find(t => t.id == dirId)?.name  : null;
+    const writName = writId ? state.talent.find(t => t.id == writId)?.name : null;
+
+    const allCosts = [
+        { label: 'Base Production', cost: prodCost },
+        ...(dirName  ? [{ label: `Director: ${dirName}`, cost: dirCost }]  : []),
+        ...(writName ? [{ label: `Writer: ${writName}`,  cost: writCost }] : []),
+        ...actorLines.map(a => ({ label: `Actor: ${a.name}`, cost: a.cost }))
+    ];
+    const maxCost = Math.max(...allCosts.map(c => c.cost), 1);
+
+    let lines = '';
+    allCosts.forEach(c => {
+        const pct = Math.round((c.cost / maxCost) * 100);
+        lines += `
+            <div class="cost-line">
+                <div class="cost-line-left">
+                    <span class="cost-line-name">${c.label}</span>
+                    <div class="cost-bar-track"><div class="cost-bar-fill" style="width:${pct}%"></div></div>
+                </div>
+                <span class="cost-line-val">$${Math.floor(c.cost).toLocaleString()}</span>
+            </div>`;
+    });
+    document.getElementById('cost-breakdown-lines').innerHTML = lines;
+
+    const totalEl = document.getElementById('total-cost-display');
+    totalEl.innerText = '$' + Math.floor(total).toLocaleString();
+    const overBudget = total > state.budget;
+    totalEl.className = 'total-val' + (overBudget ? ' over-budget' : '');
+
+    // Budget remaining after
+    const remaining = state.budget - Math.floor(total);
+    const remEl = document.getElementById('budget-remaining-val');
+    remEl.innerText = '$' + Math.abs(remaining).toLocaleString();
+    if (overBudget) { remEl.className = 'rem-val danger'; remEl.innerText = '−$' + Math.abs(remaining).toLocaleString(); }
+    else if (remaining < state.budget * 0.2) remEl.className = 'rem-val low';
+    else remEl.className = 'rem-val good';
+
+    document.getElementById('weeks-preview').innerText = `⏱ Est. ${weeks} week${weeks !== 1 ? 's' : ''} in production`;
+
+    const statusEl = document.getElementById('budget-status');
+    if (overBudget) statusEl.innerHTML = `<span style="color:#ff6666">⚠️ Over budget by $${Math.abs(remaining).toLocaleString()}</span>`;
+    else statusEl.innerHTML = `<span style="color:var(--muted)">After: $${remaining.toLocaleString()} remaining</span>`;
+
+    document.getElementById('start-btn').disabled = overBudget;
+
+    // Live IMDb preview
+    const avg = Math.round((vis + story + vfx + post + music) / 5);
+    const imdb = (avg / 15 * 9.9).toFixed(1);
+    document.getElementById('imdb-preview-val').innerText = imdb;
+
+    // Projected sub bump preview
+    const subBump = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (eps||1) * 0.05));
+    const bumpStr = subBump > 1000000 ? (subBump/1000000).toFixed(1)+'M' : subBump.toLocaleString();
+    document.getElementById('imdb-sub-bump-preview').innerText = `~+${bumpStr} subscribers on StreamVault`;
+
+    return Math.floor(total);
+}
+
+function startProduction() {
+    const title = document.getElementById('proj-title').value.trim();
+    if (!title) { toast('Please enter a title!', 'warn'); return; }
+    if (checkDuplicateActors()) { toast('Remove duplicate actor selections first.', 'warn'); return; }
+    const breakdown = computeCost();
+    const cost = breakdown.total;
+    if (state.budget < cost) { toast('Not enough budget!', 'warn'); return; }
+    saveStateForUndo();
+    state.budget -= cost;
+    let involvedIds = [];
+    const dirId  = document.getElementById('proj-director').value;
+    const writId = document.getElementById('proj-writer').value;
+    if (dirId)  involvedIds.push(parseInt(dirId));
+    if (writId) involvedIds.push(parseInt(writId));
+    document.querySelectorAll('.cast-row').forEach(row => {
+        const actorId = row.querySelector('.actor-select').value;
+        if (actorId) involvedIds.push(parseInt(actorId));
+    });
+    state.talent.forEach(t => { if (involvedIds.includes(t.id)) { t.status = 'Working'; t.project = title; } });
+    const type  = document.getElementById('proj-type').value;
+    const genre = document.getElementById('proj-genre').value;
+    const paceVal = parseInt(document.getElementById('proj-pace').value) || 3;
+    state.activeProjects.push({
+        title, type, genre,
+        episodes: breakdown.eps,
+        weeksRemaining: breakdown.weeks,
+        weeksTotal: breakdown.weeks,
+        involvedTalent: involvedIds,
+        pace: paceVal,
+        stats: { vis: breakdown.vis, story: breakdown.story, vfx: breakdown.vfx, post: breakdown.post, music: breakdown.music }
+    });
+    toast(`🎬 "${title}" entered production! (${breakdown.weeks} wks)`, 'success');
+    document.getElementById('proj-title').value = '';
+    document.getElementById('cast-container').innerHTML = '';
+    addCastRow();
+    updateUI();
+}
+
+function advanceWeek() {
+    saveStateForUndo();
+    state.week++;
+    const finished = [];
+    for (let i = state.activeProjects.length - 1; i >= 0; i--) {
+        state.activeProjects[i].weeksRemaining--;
+        if (state.activeProjects[i].weeksRemaining <= 0) {
+            const fp = state.activeProjects.splice(i, 1)[0];
+            fp.completedWeek = state.week;
+            finished.push(fp);
+            state.finishedCatalog.unshift(fp);
+            state.talent.forEach(t => {
+                if (fp.involvedTalent.includes(t.id)) { t.status = 'Idle'; t.project = ''; }
+            });
+        }
+    }
+    if (finished.length === 1) toast(`✅ "${finished[0].title}" finished! Added to catalog.`, 'success');
+    else if (finished.length > 1) toast(`✅ ${finished.length} projects finished: ${finished.map(f => `"${f.title}"`).join(', ')}`, 'success');
+    updateUI();
+    saveGame();
+}
+
+function saveStateForUndo() {
+    undoStack.push(JSON.parse(JSON.stringify(state)));
+    if (undoStack.length > 10) undoStack.shift();
+}
+
+function undoWeek() {
+    if (!undoStack.length) { toast('Nothing to undo!', 'warn'); return; }
+    state = undoStack.pop();
+    updateUI();
+    toast('↩ Reverted one step.', '');
+}
+
+function renderRoster() {
+    const list = document.getElementById('roster-list');
+    document.getElementById('roster-count-badge').innerText = (state.talent||[]).length;
+
+    // Total payroll
+    const totalPayroll = (state.talent||[]).reduce((s, t) => s + (t.salary||0), 0);
+    document.getElementById('roster-payroll').innerText = '$' + totalPayroll.toLocaleString();
+
+    if (!state.talent || state.talent.length === 0) {
+        list.innerHTML = '<div class="empty-state">No talent available.<br>Add some via the Talent Manager!</div>';
+        return;
+    }
+    list.innerHTML = '';
+    state.talent.forEach(t => {
+        const isWorking = t.status === 'Working';
+        // Power rating: salary tier 1-5
+        const power = Math.min(5, Math.max(1, Math.ceil(t.salary / 2000000)));
+        const powerStars = '⭐'.repeat(power);
+        list.innerHTML += `
+            <div class="roster-item">
+                <div>
+                    <div class="roster-name">${t.name}</div>
+                    <div class="roster-role">${t.role}</div>
+                    <div class="roster-salary">$${t.salary.toLocaleString()} / project</div>
+                    <div class="roster-power">${powerStars} Power ${power}/5</div>
+                    ${isWorking ? `<div class="roster-project">📽 ${t.project}</div>` : ''}
+                </div>
+                <span class="badge ${isWorking ? 'badge-working' : 'badge-idle'}">${t.status}</span>
+            </div>
+        `;
+    });
+}
+
+function renderActiveProjects() {
+    const list = document.getElementById('active-projects-list');
+    document.getElementById('active-count').innerText = state.activeProjects.length;
+    document.getElementById('active-count-badge').innerText = state.activeProjects.length;
+    if (!state.activeProjects.length) { list.innerHTML = '<div class="empty-state">No active projects</div>'; return; }
+
+    // Get published titles from master save for reference
+    const masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
+    const publishedTitles = new Set((masterSave.platform?.publishedCatalog || []).map(p => p.title));
+
+    list.innerHTML = '';
+    state.activeProjects.forEach(p => {
+        const pct = Math.max(0, Math.round((1 - p.weeksRemaining / p.weeksTotal) * 100));
+        const eps = p.episodes > 1 ? ` · ${p.episodes} eps` : '';
+        const isNearFinish = p.weeksRemaining <= 1;
+        const paceLabel = p.pace === 5 ? '<span class="pace-badge pace-crunch">⚡ Crunch</span>'
+                        : p.pace === 1 ? '<span class="pace-badge pace-relaxed">🐢 Relaxed</span>'
+                        : '';
+
+        // Involved talent names
+        const talentNames = (p.involvedTalent || [])
+            .map(id => state.talent.find(t => t.id === id)?.name)
+            .filter(Boolean);
+        const talentStr = talentNames.length ? talentNames.join(', ') : '';
+
+        list.innerHTML += `
+            <div class="project-card${isNearFinish ? ' near-finish' : ''}">
+                <div class="project-card-header">
+                    <div class="project-card-title">${p.title}</div>
+                    ${paceLabel}
+                </div>
+                <div class="project-card-meta">
+                    <span>${p.type}${eps}</span>
+                    <span>${p.genre || 'Uncategorized'}</span>
+                    <span>V${p.stats.vis} S${p.stats.story} X${p.stats.vfx}</span>
+                </div>
+                ${talentStr ? `<div class="project-talent-row">👥 ${talentStr}</div>` : ''}
+                <div class="weeks-bar"><div class="weeks-bar-fill" style="width:${pct}%"></div></div>
+                <div class="weeks-label">
+                    <span${isNearFinish ? ' class="near-text"' : ''}>
+                        ${isNearFinish ? '🏁 Finishing next week!' : `${p.weeksRemaining} wk${p.weeksRemaining !== 1 ? 's' : ''} left`}
+                    </span>
+                    <span>${pct}%</span>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function renderCatalog() {
+    const list = document.getElementById('catalog-list');
+    document.getElementById('catalog-count-badge').innerText = state.finishedCatalog.length;
+
+    if (!state.finishedCatalog.length) { list.innerHTML = '<div class="empty-state">Nothing released yet</div>'; return; }
+
+    // Get published titles from master save
+    const masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
+    const publishedTitles = new Set((masterSave.platform?.publishedCatalog || []).map(p => p.title));
+
+    list.innerHTML = '';
+    state.finishedCatalog.forEach(p => {
+        const avg = ((parseInt(p.stats.vis||1) + parseInt(p.stats.story||1) + parseInt(p.stats.vfx||1) + parseInt(p.stats.post||1) + parseInt(p.stats.music||1)) / 5);
+        const starVal = (avg / 15) * 5;
+        const fullStars = Math.floor(starVal);
+        const halfStar = (starVal - fullStars) >= 0.5 ? '½' : '';
+        const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+        const stars = '★'.repeat(fullStars) + halfStar + '☆'.repeat(Math.max(0, emptyStars));
+        const eps = p.episodes > 1 ? ` · ${p.episodes} eps` : '';
+        const isPublished = publishedTitles.has(p.title);
+        const weekLabel = p.completedWeek ? `Wk ${p.completedWeek}` : '';
+
+        list.innerHTML += `
+            <div class="catalog-card">
+                <div class="catalog-card-header">
+                    <div>
+                        <div class="catalog-card-title">${p.title}</div>
+                        <div class="catalog-card-meta">${p.type}${eps} · ${p.genre || 'Uncategorized'}</div>
+                    </div>
+                    ${isPublished
+                        ? `<span class="published-badge">📺 Live</span>`
+                        : `<span class="vault-badge">🔒 Vault</span>`}
+                </div>
+                <div class="catalog-card-footer">
+                    <span class="catalog-stars">${stars}</span>
+                    ${weekLabel ? `<span class="catalog-week">· ${weekLabel}</span>` : ''}
+                </div>
+            </div>
+        `;
+    });
+}
+
+function toast(msg, type = '') {
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = 'toast' + (type ? ` toast-${type}` : '');
+    el.innerText = msg;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 4200);
+}
+
+function saveGame() {
+    let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
+    // FIX: If Netflix has collected revenue since Studio last loaded, 
+    // localStorage will have a higher budget/week than our in-memory state.
+    // Preserve whichever budget is higher so Netflix earnings are never overwritten.
+    if (masterSave.state) {
+        const latestBudget = masterSave.state.budget || 0;
+        const latestWeek = masterSave.state.week || 1;
+        if (latestBudget > state.budget) state.budget = latestBudget;
+        if (latestWeek > state.week) state.week = latestWeek;
+    }
+    masterSave.state = state;
+    masterSave.undoStack = undoStack;
+    localStorage.setItem('studioHubSave_v2', JSON.stringify(masterSave));
+    toast('💾 Game saved.', 'success');
+}
+
+function loadGame() {
+    const saved = localStorage.getItem('studioHubSave_v2');
+    if (saved) {
+        try {
+            let masterSave = JSON.parse(saved);
+            if (masterSave.state) {
+                if (!masterSave.state.budget) masterSave.state.budget = 50000000;
+                if (!masterSave.state.week) masterSave.state.week = 1;
+                state = masterSave.state;
+            }
+            undoStack = masterSave.undoStack || [];
+        } catch(e) { console.warn('Save corrupted, starting fresh.'); }
+    }
+}
+
+function resetGame() {
+    if (confirm('Reset all progress? This cannot be undone.')) {
+        localStorage.removeItem('studioHubSave_v2');
+        location.reload();
+    }
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

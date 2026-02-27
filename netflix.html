@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamVault — Watch Now</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #141414;
+            --nav-bg: #000000;
+            --text: #e5e5e5;
+            --accent: #E50914;
+            --accent-glow: rgba(229,9,20,0.3);
+            --hover: #ffffff;
+            --admin-bg: #0f0f0f;
+            --admin-panel: #1a1a1a;
+            --admin-panel-2: #222228;
+            --border: #2a2a2a;
+            --border-light: #383838;
+            --green: #46d369;
+            --gold: #ffd700;
+            --sidebar-w: 80px;
+            --muted: #888;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-w);
+            background: linear-gradient(to bottom, #000, #0a0a0a);
+            border-right: 1px solid #1a1a1a;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 30px 0;
+            z-index: 1000;
+        }
+        .sidebar-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            color: var(--accent);
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+        }
+        .nav-btn {
+            width: 100%; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            color: #555;
+            font-size: 20px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: color 0.2s, transform 0.15s, background 0.2s;
+            position: relative;
+            border-left: 3px solid transparent;
+        }
+        .nav-btn:hover { color: var(--hover); transform: scale(1.1); background: rgba(255,255,255,0.04); }
+        .nav-btn.active { color: var(--hover); border-left-color: var(--accent); background: rgba(229,9,20,0.08); }
+        .nav-tooltip {
+            position: absolute; left: 90px; background: #1a1a1a; color: white;
+            padding: 5px 10px; border-radius: 4px; font-size: 12px; white-space: nowrap;
+            opacity: 0; pointer-events: none; transition: opacity 0.15s;
+            border: 1px solid #333;
+        }
+        .nav-btn:hover .nav-tooltip { opacity: 1; }
+        .nav-spacer { flex: 1; }
+
+        /* ── LAYOUT SHELLS ── */
+        .shell { margin-left: var(--sidebar-w); min-height: 100vh; }
+        .shell.hidden { display: none; }
+
+        /* ── HERO ── */
+        .hero {
+            position: relative; height: 85vh; background-size: cover;
+            background-position: center top; display: flex; align-items: center; padding: 0 4%;
+            transition: background-image 0.5s;
+        }
+        .hero::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to right, rgba(14,14,14,0.97) 0%, rgba(14,14,14,0.5) 50%, transparent 100%),
+                        linear-gradient(to top, rgba(14,14,14,1) 0%, rgba(14,14,14,0) 30%);
+            z-index: 1;
+        }
+        .hero-content { position: relative; z-index: 2; max-width: 600px; margin-top: 80px; }
+        .hero-n-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(229,9,20,0.15); border: 1px solid rgba(229,9,20,0.3);
+            padding: 4px 12px; border-radius: 20px;
+            color: var(--text); font-weight: 600; letter-spacing: 3px; font-size: 11px;
+            text-transform: uppercase; margin-bottom: 16px;
+        }
+        .hero-n-badge span { color: var(--accent); font-size: 18px; font-weight: 900; }
+        .hero-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(4rem, 8vw, 7rem); line-height: 0.9;
+            color: #fff; margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+        .hero-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .imdb-badge { background: #f5c518; color: black; padding: 3px 8px; border-radius: 3px; font-weight: 900; font-size: 13px; }
+        .hero-type-badge {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;
+        }
+        .freshness-pill {
+            padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .fresh { background: rgba(70,211,105,0.2); color: var(--green); border: 1px solid rgba(70,211,105,0.3); }
+        .aging { background: rgba(255,180,0,0.2); color: #ffb400; border: 1px solid rgba(255,180,0,0.3); }
+        .stale { background: rgba(255,80,80,0.2); color: #ff5050; border: 1px solid rgba(255,80,80,0.3); }
+        .stream-count { font-size: 15px; color: var(--muted); }
+        .stream-count span { color: white; font-weight: 700; }
+        .hero-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .btn-hero { padding: 12px 28px; font-size: 16px; font-weight: 700; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; font-family: inherit; }
+        .btn-play { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(229,9,20,0.4); }
+        .btn-play:hover { background: #ff0a16; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(229,9,20,0.5); }
+        .btn-info { background: rgba(255,255,255,0.15); color: white; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); }
+        .btn-info:hover { background: rgba(255,255,255,0.25); transform: translateY(-1px); }
+
+        /* ── CONTENT ROWS ── */
+        #platform-rows { padding: 0 0 80px; margin-top: -80px; position: relative; z-index: 10; }
+        .row-section { padding: 0 4%; margin-bottom: 40px; }
+        .row-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .row-name { font-size: 1.4rem; font-weight: 700; color: #e5e5e5; }
+        .row-see-all { font-size: 13px; color: var(--accent); font-weight: 600; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+        .row-section:hover .row-see-all { opacity: 1; }
+        .row-track { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+        .row-track::-webkit-scrollbar { display: none; }
+
+        .poster-card {
+            flex: 0 0 185px; height: 278px; border-radius: 6px;
+            background: #222; background-size: cover; background-position: center;
+            cursor: pointer; position: relative; transition: transform 0.3s, box-shadow 0.3s;
+            overflow: hidden;
+        }
+        .poster-card:hover { transform: scale(1.06); box-shadow: 0 12px 30px rgba(0,0,0,0.9); z-index: 5; }
+        .poster-card:hover .card-hover-overlay { opacity: 1; }
+        .poster-fallback {
+            position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 14px; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+        }
+        .fallback-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #fff; line-height: 1; margin-bottom: 4px; }
+        .fallback-genre { font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .freshness-bar-wrap { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.1); }
+        .freshness-bar { height: 100%; transition: width 0.3s; }
+
+        /* Card hover overlay */
+        .card-hover-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 50%);
+            opacity: 0; transition: opacity 0.2s;
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 12px;
+        }
+        .hover-title { font-weight: 700; font-size: 14px; color: white; margin-bottom: 4px; }
+        .hover-imdb { font-size: 11px; color: #f5c518; font-weight: 700; }
+        .hover-play-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -70%);
+            width: 40px; height: 40px; background: rgba(229,9,20,0.9); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; color: white; opacity: 0; transition: opacity 0.2s, transform 0.2s;
+        }
+        .poster-card:hover .hover-play-btn { opacity: 1; transform: translate(-50%, -50%); }
+
+        /* Empty row ghost */
+        .empty-row-ghost {
+            flex: 0 0 185px; height: 278px; border-radius: 6px;
+            background: #1a1a1a; border: 2px dashed #2a2a2a;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #333; font-size: 13px; text-align: center; padding: 20px;
+        }
+        .empty-row-ghost .ghost-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.3; }
+
+        /* ── SEARCH ── */
+        #search-shell { padding: 60px 4%; }
+        .search-wrap { position: relative; margin-bottom: 40px; }
+        .search-input {
+            width: 100%; background: transparent; border: none;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            color: white; font-size: 2.5rem; padding: 10px 0; outline: none; font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-bottom-color: white; }
+        .search-label { position: absolute; top: 10px; right: 0; color: var(--muted); font-size: 14px; }
+        .search-results-wrap { display: flex; flex-wrap: wrap; gap: 10px; }
+        .no-results { color: var(--muted); font-size: 1.2rem; padding: 40px 0; }
+
+        /* ── ADMIN SHELL ── */
+        #admin-shell { padding: 0; background: var(--admin-bg); min-height: 100vh; }
+
+        .admin-topbar {
+            background: #000; border-bottom: 1px solid var(--border);
+            padding: 0 40px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .admin-topbar-title {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 2px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .admin-topbar-title::before {
+            content: ''; display: inline-block; width: 8px; height: 8px;
+            background: var(--accent); border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        .admin-topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+        .admin-body { padding: 30px 40px; }
+
+        /* Stats grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card {
+            background: var(--admin-panel); padding: 20px 22px; border-radius: 8px;
+            border: 1px solid var(--border); position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        }
+        .stat-card.red::before { background: var(--accent); }
+        .stat-card.green::before { background: var(--green); }
+        .stat-card.gold::before { background: var(--gold); }
+        .stat-card.blue::before { background: #4da6ff; }
+        .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+        .stat-val { font-size: 2rem; font-weight: 800; color: white; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
+        .stat-delta {
+            font-size: 12px; font-weight: 600; margin-top: 4px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .delta-up { color: var(--green); }
+        .delta-neutral { color: var(--muted); }
+
+        /* Revenue equation banner */
+        .revenue-equation {
+            background: linear-gradient(135deg, #1a1a1a, #222);
+            border: 1px solid var(--border); border-left: 4px solid var(--green);
+            border-radius: 8px; padding: 18px 24px; margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+        }
+        .eq-part { text-align: center; }
+        .eq-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: white; letter-spacing: 1px; }
+        .eq-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+        .eq-op { font-size: 1.5rem; color: #444; font-weight: 300; }
+        .eq-result { text-align: center; }
+        .eq-result .eq-val { color: var(--green); font-size: 2.2rem; }
+        .eq-result .eq-label { color: var(--green); }
+        .projected-payout {
+            background: rgba(70,211,105,0.05); border: 1px solid rgba(70,211,105,0.15);
+            padding: 10px 20px; border-radius: 6px; text-align: right;
+        }
+        .projected-payout .proj-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .projected-payout .proj-val { font-size: 1.4rem; font-weight: 800; color: var(--green); margin-top: 2px; }
+
+        /* Collect btn */
+        .collect-btn {
+            width: 100%; background: linear-gradient(135deg, #3cbc58, #46d369);
+            color: black; border: none; padding: 16px; font-size: 17px; font-weight: 800;
+            cursor: pointer; margin-bottom: 28px; border-radius: 8px; font-family: inherit;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 20px rgba(70,211,105,0.25);
+        }
+        .collect-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(70,211,105,0.4); }
+        .collect-btn:active { transform: translateY(0); }
+
+        /* Subscription price slider */
+        .price-control {
+            background: var(--admin-panel); border: 1px solid var(--border);
+            border-radius: 8px; padding: 20px 24px; margin-bottom: 24px;
+            display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+        }
+        .price-label-group { flex: 1; min-width: 200px; }
+        .price-title { font-weight: 700; font-size: 15px; color: white; margin-bottom: 4px; }
+        .price-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+        .slider-group { flex: 2; min-width: 250px; display: flex; align-items: center; gap: 16px; }
+        .price-slider {
+            flex: 1; -webkit-appearance: none; appearance: none;
+            height: 4px; background: #333; border-radius: 2px; outline: none; cursor: pointer;
+        }
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 18px; height: 18px; background: var(--accent);
+            border-radius: 50%; cursor: pointer; box-shadow: 0 2px 8px rgba(229,9,20,0.5);
+            transition: transform 0.15s;
+        }
+        .price-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        .price-display {
+            min-width: 60px; text-align: center;
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--accent);
+        }
+        .churn-warning { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+        .churn-warn { background: rgba(255,180,0,0.15); color: #ffb400; }
+        .churn-ok { background: rgba(70,211,105,0.15); color: var(--green); }
+
+        /* Admin two-column */
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+        .admin-card {
+            background: var(--admin-panel); border: 1px solid var(--border);
+            padding: 22px; border-radius: 8px;
+        }
+        .admin-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 18px;
+        }
+        .admin-card-header h3 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: white; }
+        .admin-card-count { font-size: 12px; color: var(--muted); background: #111; padding: 2px 8px; border-radius: 10px; }
+
+        .field-label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; margin-top: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .field-input, .field-select {
+            width: 100%; padding: 10px 12px; background: #111; border: 1px solid #333;
+            color: white; border-radius: 6px; font-family: inherit; font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .field-input:focus, .field-select:focus { outline: none; border-color: var(--accent); }
+        .field-select option { background: #111; }
+
+        .btn-primary {
+            background: var(--accent); color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 14px;
+            font-family: inherit; font-size: 14px; transition: background 0.2s, transform 0.15s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary:hover { background: #ff0a16; transform: translateY(-1px); }
+        .btn-secondary {
+            background: #2a2a2a; color: white; border: 1px solid #444; padding: 10px 20px;
+            border-radius: 6px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn-secondary:hover { background: #333; }
+        .btn-danger {
+            background: transparent; color: #ff5555; border: 1px solid rgba(255,85,85,0.3);
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+            font-weight: 600; transition: background 0.2s;
+        }
+        .btn-danger:hover { background: rgba(255,85,85,0.1); }
+
+        /* List items */
+        .vault-item, .published-item, .row-item {
+            background: #111; padding: 12px 14px; margin-bottom: 8px; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #1e1e1e; transition: border-color 0.2s;
+        }
+        .vault-item:hover, .published-item:hover { border-color: #333; }
+        .item-title { font-weight: 600; font-size: 14px; color: white; margin-bottom: 2px; }
+        .item-meta { font-size: 11px; color: var(--muted); }
+        .item-freshness { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+        .item-fresh-bar { width: 60px; height: 3px; background: #222; border-radius: 2px; overflow: hidden; }
+        .item-fresh-fill { height: 100%; border-radius: 2px; }
+
+        /* Feature toggle */
+        .feature-toggle {
+            display: flex; align-items: center; gap: 8px; margin-top: 10px;
+            font-size: 12px; color: var(--muted); cursor: pointer;
+        }
+        .feature-toggle input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center; padding: 30px 20px; color: var(--muted);
+        }
+        .empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
+        .empty-state p { font-size: 13px; line-height: 1.5; }
+
+        /* Publish Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+            padding: 32px; max-width: 500px; width: 90%; transform: translateY(20px);
+            transition: transform 0.25s; position: relative;
+        }
+        .modal-overlay.open .modal { transform: translateY(0); }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px;
+            background: #333; border: none; color: white; width: 28px; height: 28px;
+            border-radius: 50%; cursor: pointer; font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: white; margin-bottom: 6px; }
+        .modal-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+        .modal-proj-info {
+            background: #111; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px;
+            border: 1px solid #2a2a2a;
+        }
+        .proj-stats-row { display: flex; gap: 16px; margin-top: 8px; }
+        .proj-stat { text-align: center; }
+        .proj-stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: white; }
+        .proj-stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .sub-bump-preview {
+            background: rgba(70,211,105,0.08); border: 1px solid rgba(70,211,105,0.2);
+            border-radius: 6px; padding: 12px 16px; margin-top: 16px; text-align: center;
+        }
+        .sub-bump-val { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--green); }
+        .sub-bump-label { font-size: 12px; color: rgba(70,211,105,0.7); }
+
+        /* Toast */
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast {
+            background: #1e1e1e; border: 1px solid #333; border-left: 3px solid var(--accent);
+            padding: 14px 20px; color: white; font-weight: 600; border-radius: 6px;
+            font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            animation: slideIn 0.3s ease; max-width: 300px;
+        }
+        .toast.success { border-left-color: var(--green); }
+        .toast.warn { border-left-color: #ffb400; }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Back link */
+        .back-link {
+            position: fixed; bottom: 24px; left: calc(var(--sidebar-w) + 20px);
+            background: #1a1a1a; border: 1px solid #333; color: white;
+            padding: 10px 16px; border-radius: 6px; text-decoration: none;
+            font-size: 13px; font-weight: 600; z-index: 500;
+            transition: background 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .back-link:hover { background: #222; }
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <div class="sidebar-logo">SV</div>
+    <div class="nav-btn" id="nav-home" onclick="switchMode('viewer','all')">
+        🏠<span class="nav-tooltip">Home</span>
+    </div>
+    <div class="nav-btn" id="nav-series" onclick="switchMode('viewer','series')">
+        📺<span class="nav-tooltip">Series</span>
+    </div>
+    <div class="nav-btn" id="nav-movies" onclick="switchMode('viewer','movies')">
+        🎬<span class="nav-tooltip">Movies</span>
+    </div>
+    <div class="nav-btn" id="nav-trending" onclick="switchMode('viewer','trending')">
+        📈<span class="nav-tooltip">Trending</span>
+    </div>
+    <div class="nav-btn" id="nav-mylist" onclick="switchMode('viewer','mylist')">
+        ➕<span class="nav-tooltip">My List</span>
+    </div>
+    <div class="nav-btn" id="nav-search" onclick="switchMode('search')">
+        🔍<span class="nav-tooltip">Search</span>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-btn" id="nav-admin" onclick="switchMode('admin')">
+        ⚙️<span class="nav-tooltip">Platform Manager</span>
+    </div>
+</nav>
+
+<div class="shell" id="viewer-shell">
+    <div class="hero" id="hero-banner">
+        <div class="hero-content" id="hero-content"></div>
+    </div>
+    <div id="platform-rows"></div>
+</div>
+
+<div class="shell hidden" id="search-shell">
+    <div class="search-wrap">
+        <input type="text" class="search-input" id="search-input" placeholder="Search titles, genres..." oninput="executeSearch()">
+        <span class="search-label" id="search-count-label"></span>
+    </div>
+    <div id="search-results" class="search-results-wrap"></div>
+</div>
+
+<div class="shell hidden" id="admin-shell">
+    <div class="admin-topbar">
+        <div class="admin-topbar-title">Platform Manager</div>
+        <div class="admin-topbar-actions">
+            <button class="btn-secondary" onclick="window.location.href='index.html'">← Dashboard</button>
+            <button class="btn-secondary" onclick="window.location.href='studio.html'">🎬 Studio</button>
+        </div>
+    </div>
+
+    <div class="admin-body">
+        <div class="stat-grid">
+            <div class="stat-card red">
+                <div class="stat-label">Total Subscribers</div>
+                <div class="stat-val" id="stat-subs">0</div>
+                <div class="stat-delta" id="stat-subs-delta"><span class="delta-neutral">—</span></div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label">Weekly Revenue</div>
+                <div class="stat-val" id="stat-revenue" style="color:var(--green);">$0</div>
+                <div class="stat-delta delta-neutral" id="stat-revenue-sub">at $<span id="stat-subprice">15</span>/sub</div>
+            </div>
+            <div class="stat-card gold">
+                <div class="stat-label">Studio Budget</div>
+                <div class="stat-val" id="stat-budget" style="color:var(--gold);">$0</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-label">Published Titles</div>
+                <div class="stat-val" id="stat-catalog">0</div>
+                <div class="stat-delta delta-neutral" id="stat-vault-count">0 in vault</div>
+            </div>
+        </div>
+
+        <div class="revenue-equation">
+            <div class="eq-part">
+                <div class="eq-val" id="eq-subs">0</div>
+                <div class="eq-label">Subscribers</div>
+            </div>
+            <div class="eq-op">×</div>
+            <div class="eq-part">
+                <div class="eq-val" id="eq-price">$15</div>
+                <div class="eq-label">Price / week</div>
+            </div>
+            <div class="eq-op">=</div>
+            <div class="eq-result">
+                <div class="eq-val" id="eq-total">$0</div>
+                <div class="eq-label">Weekly income</div>
+            </div>
+            <div class="projected-payout">
+                <div class="proj-label">Next Payout — Week <span id="next-week-label">2</span></div>
+                <div class="proj-val" id="proj-payout">$0</div>
+            </div>
+        </div>
+
+        <div class="price-control">
+            <div class="price-label-group">
+                <div class="price-title">Subscription Price</div>
+                <div class="price-desc">Raising price increases revenue but also subscriber churn. Sweet spot is $10–$18.</div>
+            </div>
+            <div class="slider-group">
+                <input type="range" class="price-slider" id="price-slider" min="5" max="30" step="1" value="15" oninput="updatePrice(this.value)">
+                <div class="price-display">$<span id="price-val">15</span></div>
+                <span class="churn-warning" id="churn-warn">✓ Good</span>
+            </div>
+        </div>
+
+        <button class="collect-btn" onclick="collectRevenue()">
+            💰 Collect Revenue & Advance to Week <span id="next-week-label-2">2</span>
+        </button>
+
+        <div class="admin-grid">
+            <div>
+                <div class="admin-card" style="margin-bottom: 20px;">
+                    <div class="admin-card-header">
+                        <h3>Publish from Studio Vault</h3>
+                        <span class="admin-card-count" id="vault-count-badge">0 ready</span>
+                    </div>
+                    <label class="field-label">Select Project</label>
+                    <select class="field-select" id="vault-select" onchange="updatePublishPreview()"></select>
+                    <label class="field-label">Poster Image URL (Optional)</label>
+                    <input type="text" class="field-input" id="poster-url" placeholder="https://example.com/poster.jpg">
+                    <label class="field-label">Assign to Row</label>
+                    <select class="field-select" id="row-assign-select"></select>
+                    <label class="feature-toggle">
+                        <input type="checkbox" id="feature-flag"> Feature this title on the hero banner this week
+                        <span style="color:#ffb400; font-size:11px;">(boosts +20% subscriber gain)</span>
+                    </label>
+                    <div id="publish-preview-block" style="display:none;">
+                        <div class="sub-bump-preview">
+                            <div class="sub-bump-label">Projected subscriber gain</div>
+                            <div class="sub-bump-val" id="preview-sub-bump">+0</div>
+                            <div style="font-size:11px; color:var(--muted); margin-top:4px;">based on this title's production quality</div>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="openPublishModal()">🚀 Publish to Platform</button>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3>Live on Platform</h3>
+                        <span class="admin-card-count" id="published-count-badge">0</span>
+                    </div>
+                    <div id="published-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>Nothing published yet.<br>Publish titles to start growing subscribers.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="admin-card" style="margin-bottom: 20px;">
+                    <div class="admin-card-header">
+                        <h3>Row Manager</h3>
+                        <span class="admin-card-count" id="rows-count-badge">0 rows</span>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-bottom: 14px;">
+                        <input type="text" class="field-input" id="new-row-input" placeholder='e.g. "Award Winners"'>
+                        <button class="btn-primary" style="margin-top:0; white-space:nowrap;" onclick="createRow()">+ Add</button>
+                    </div>
+                    <div id="rows-list"></div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3>Studio Vault</h3>
+                        <span class="admin-card-count" id="vault-preview-count">0 unreleased</span>
+                    </div>
+                    <div id="vault-preview-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">🎬</div>
+                            <p>Finish projects in the Studio<br>to populate your vault.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="publish-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closePublishModal()">✕</button>
+        <div class="modal-title">PUBLISH TO STREAMVAULT</div>
+        <div class="modal-subtitle">Review this release before it goes live to your audience.</div>
+        <div class="modal-proj-info" id="modal-proj-info">
+            <div class="item-title" id="modal-proj-title">—</div>
+            <div class="item-meta" id="modal-proj-type">—</div>
+            <div class="proj-stats-row" id="modal-stats-row"></div>
+        </div>
+        <label class="field-label">Row Assignment</label>
+        <div id="modal-row-name" style="color:white; font-weight:600; font-size:14px; padding: 8px 0;">—</div>
+        <label class="feature-toggle" style="margin-bottom:16px;">
+            <input type="checkbox" id="modal-feature-flag"> Feature on hero banner (boosts +20% subscribers)
+        </label>
+        <div class="sub-bump-preview">
+            <div class="sub-bump-label">Estimated new subscribers from this release</div>
+            <div class="sub-bump-val" id="modal-sub-bump">+0</div>
+            <div style="font-size:11px; color:rgba(70,211,105,0.6); margin-top:4px;" id="modal-bump-note"></div>
+        </div>
+        <button class="btn-primary" style="width:100%; justify-content:center; margin-top:20px; padding:14px;" onclick="confirmPublish()">
+            🎬 Confirm & Go Live
+        </button>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+const SAVE_KEY = 'studioHubSave_v2';
+let studioSave = null;
+let platform = { subscribers: 0, subPrice: 15, rows: ['New this week', 'Trending Now'], publishedCatalog: [] };
+let currentFilter = 'all';
+let prevSubscribers = 0;
+
+function init() { loadGame(); recalcSubscribers(); renderAll(); }
+
+function loadGame() {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) {
+        studioSave = { state: { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] } };
+        studioSave.platform = platform;
+        return;
+    }
+    studioSave = JSON.parse(raw);
+    if (!studioSave.state) studioSave.state = { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] };
+    if (studioSave.platform) platform = studioSave.platform;
+    else studioSave.platform = platform;
+    if (!platform.subPrice) platform.subPrice = 15;
+}
+
+function persistSave() {
+    let masterSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
+    masterSave.platform = platform;
+    masterSave.state = studioSave.state;
+    localStorage.setItem(SAVE_KEY, JSON.stringify(masterSave));
+}
+
+function recalcSubscribers() {
+    prevSubscribers = platform.subscribers;
+    let total = 0;
+    platform.publishedCatalog.forEach(p => {
+        const vis = parseInt(p.stats?.vis) || 1;
+        const story = parseInt(p.stats?.story) || 1;
+        const vfx = parseInt(p.stats?.vfx) || 1;
+        let base = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (p.episodes||1) * 0.05));
+        // Freshness decay
+        const age = p.weeksOnPlatform || 0;
+        const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
+        base = Math.floor(base * freshnessFactor);
+        // Feature bonus
+        if (p.featured) base = Math.floor(base * 1.2);
+        // Price sensitivity
+        const priceFactor = Math.max(0.5, 1 - ((platform.subPrice - 15) * 0.03));
+        base = Math.floor(base * priceFactor);
+        total += base;
+    });
+    platform.subscribers = total;
+}
+
+function calcProjectSubBump(project, featured) {
+    if (!project) return 0;
+    const vis = parseInt(project.stats?.vis) || 1;
+    const story = parseInt(project.stats?.story) || 1;
+    const vfx = parseInt(project.stats?.vfx) || 1;
+    let bump = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (project.episodes||1) * 0.05));
+    
+    // Apply freshness to preview
+    const age = project.weeksOnPlatform || 0;
+    const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
+    bump = Math.floor(bump * freshnessFactor);
+
+    if (featured) bump = Math.floor(bump * 1.2);
+
+    // Apply price penalty
+    const priceFactor = Math.max(0.5, 1 - ((platform.subPrice - 15) * 0.03));
+    bump = Math.floor(bump * priceFactor);
+
+    return bump;
+}
+
+function getFreshnessLabel(weeksOnPlatform) {
+    if (weeksOnPlatform <= 2) return { label: '🟢 Fresh', cls: 'fresh' };
+    if (weeksOnPlatform <= 6) return { label: '🟡 Aging', cls: 'aging' };
+    return { label: '🔴 Stale', cls: 'stale' };
+}
+
+function getFreshnessPercent(weeksOnPlatform) {
+    return Math.max(10, Math.round(Math.max(0.2, 1 - (weeksOnPlatform * 0.07)) * 100));
+}
+
+function updatePrice(val) {
+    platform.subPrice = parseInt(val);
+    document.getElementById('price-val').innerText = val;
+    document.getElementById('stat-subprice').innerText = val;
+    const warn = document.getElementById('churn-warn');
+    if (val > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
+    else if (val > 25) { warn.textContent = '🚨 Very high churn'; warn.className = 'churn-warning churn-warn'; }
+    else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
+    recalcSubscribers();
+    renderAdmin();
+    persistSave();
+}
+
+function collectRevenue() {
+    // Load fresh game data to prevent tab desync
+    loadGame();
+    // Recalc subscribers NOW (after fresh load) so income uses the correct count
+    recalcSubscribers();
+
+    const income = platform.subscribers * platform.subPrice;
+    studioSave.state.budget += income;
+    studioSave.state.week++;
+
+    // Age all published catalog items
+    platform.publishedCatalog.forEach(p => {
+        p.weeksOnPlatform = (p.weeksOnPlatform || 0) + 1;
+    });
+
+    const projects = studioSave.state.activeProjects || [];
+    for (let i = projects.length - 1; i >= 0; i--) {
+        projects[i].weeksRemaining--;
+        if (projects[i].weeksRemaining <= 0) {
+            const fp = projects.splice(i, 1)[0];
+            fp.completedWeek = studioSave.state.week;
+            studioSave.state.finishedCatalog.unshift(fp);
+            (studioSave.state.talent || []).forEach(t => { if ((fp.involvedTalent || []).includes(t.id)) { t.status = 'Idle'; t.project = ''; } });
+        }
+    }
+    persistSave(); renderAll();
+    toast(`💰 Collected $${income.toLocaleString()}!`, 'success');
+}
+
+function openPublishModal() {
+    const title = document.getElementById('vault-select').value;
+    if (!title) { toast('No project selected.', 'warn'); return; }
+    const project = studioSave.state.finishedCatalog.find(p => p.title === title);
+    if (!project) return;
+    const featured = document.getElementById('feature-flag').checked;
+    const row = document.getElementById('row-assign-select').value;
+    const bump = calcProjectSubBump(project, featured);
+    const avg = Math.round(((parseInt(project.stats?.vis)||5)+(parseInt(project.stats?.story)||5)+(parseInt(project.stats?.vfx)||5))/3);
+    const imdb = (avg / 10 * 9.9).toFixed(1);
+
+    document.getElementById('modal-proj-title').innerText = project.title;
+    document.getElementById('modal-proj-type').innerText = `${project.type} · ${project.genre || ''}`;
+    document.getElementById('modal-stats-row').innerHTML = `
+        <div class="proj-stat"><div class="proj-stat-val">${project.stats?.vis||'?'}</div><div class="proj-stat-label">Visuals</div></div>
+        <div class="proj-stat"><div class="proj-stat-val">${project.stats?.story||'?'}</div><div class="proj-stat-label">Story</div></div>
+        <div class="proj-stat"><div class="proj-stat-val">${project.stats?.vfx||'?'}</div><div class="proj-stat-label">VFX</div></div>
+        <div class="proj-stat"><div class="proj-stat-val">${imdb}</div><div class="proj-stat-label">IMDb</div></div>
+    `;
+    document.getElementById('modal-row-name').innerText = row || '—';
+    document.getElementById('modal-feature-flag').checked = featured;
+    document.getElementById('modal-sub-bump').innerText = '+' + bump.toLocaleString();
+    document.getElementById('modal-bump-note').innerText = featured ? 'Featured bonus (+20%) applied' : 'Enable hero feature for a +20% boost';
+    document.getElementById('publish-modal').classList.add('open');
+}
+
+function closePublishModal() {
+    document.getElementById('publish-modal').classList.remove('open');
+}
+
+function confirmPublish() {
+    const title = document.getElementById('vault-select').value;
+    if (!title) return;
+    const idx = studioSave.state.finishedCatalog.findIndex(p => p.title === title);
+    const project = studioSave.state.finishedCatalog.splice(idx, 1)[0];
+    
+    project.poster = document.getElementById('poster-url').value.trim() || null;
+    project.row = document.getElementById('row-assign-select').value;
+    project.featured = document.getElementById('modal-feature-flag').checked;
+    
+    // 3. Prevent Infinite Freshness (preserve existing age if un-published and republished)
+    project.weeksOnPlatform = project.weeksOnPlatform || 0; 
+    
+    // 4. Prevent Everything Featured Exploit
+    if (project.featured) {
+        platform.publishedCatalog.forEach(p => p.featured = false);
+    }
+
+    platform.publishedCatalog.unshift(project);
+    recalcSubscribers(); persistSave(); renderAll();
+    
+    document.getElementById('poster-url').value = '';
+    document.getElementById('feature-flag').checked = false;
+    closePublishModal();
+    toast(`🎬 "${project.title}" is now streaming!`, 'success');
+}
+
+function updatePublishPreview() {
+    const title = document.getElementById('vault-select').value;
+    if (!title) { document.getElementById('publish-preview-block').style.display = 'none'; return; }
+    const project = studioSave.state.finishedCatalog.find(p => p.title === title);
+    if (!project) return;
+    const featured = document.getElementById('feature-flag').checked;
+    const bump = calcProjectSubBump(project, featured);
+    document.getElementById('preview-sub-bump').innerText = '+' + bump.toLocaleString();
+    document.getElementById('publish-preview-block').style.display = 'block';
+}
+
+function unpublishProject(title) {
+    const idx = platform.publishedCatalog.findIndex(p => p.title === title);
+    const project = platform.publishedCatalog.splice(idx, 1)[0];
+    studioSave.state.finishedCatalog.unshift(project);
+    recalcSubscribers(); persistSave(); renderAll();
+    toast(`"${title}" moved back to vault.`);
+}
+
+function createRow() {
+    const name = document.getElementById('new-row-input').value.trim();
+    if (name && !platform.rows.includes(name)) { platform.rows.push(name); persistSave(); renderAll(); }
+    document.getElementById('new-row-input').value = '';
+}
+
+function deleteRow(name) {
+    // 5. Delete Last Row Black Hole fix
+    if (platform.rows.length <= 1) {
+        toast("You must have at least one row!", "warn");
+        return;
+    }
+    platform.publishedCatalog.filter(p => p.row === name).forEach(p => p.row = platform.rows.filter(r => r !== name)[0]);
+    platform.rows = platform.rows.filter(r => r !== name);
+    persistSave(); renderAll();
+}
+
+function renderViewer() {
+    const heroEl = document.getElementById('hero-banner');
+    const contentEl = document.getElementById('hero-content');
+
+    let displayCatalog = platform.publishedCatalog;
+    if (currentFilter === 'series') displayCatalog = displayCatalog.filter(p => p.type === 'Web Series' || p.type === 'Anime');
+    else if (currentFilter === 'movies') displayCatalog = displayCatalog.filter(p => p.type === 'Movie');
+    else if (currentFilter === 'trending') displayCatalog = [...displayCatalog].sort((a,b) => {
+        const avgA = (parseInt(a.stats?.vis)||0)+(parseInt(a.stats?.story)||0)+(parseInt(a.stats?.vfx)||0);
+        const avgB = (parseInt(b.stats?.vis)||0)+(parseInt(b.stats?.story)||0)+(parseInt(b.stats?.vfx)||0);
+        return avgB - avgA;
+    });
+    else if (currentFilter === 'mylist') displayCatalog = [];
+
+    if (!displayCatalog.length) {
+        heroEl.style.backgroundImage = 'none';
+        heroEl.style.background = 'linear-gradient(135deg, #1a0a0a, #0a0a0a)';
+        let msg = currentFilter === 'mylist' ? 'Your list is empty.' : 'Go to Platform Manager to publish content.';
+        contentEl.innerHTML = `
+            <div class="hero-n-badge"><span>N</span> STREAMVAULT</div>
+            <div class="hero-title">NO\nCONTENT</div>
+            <p style="color:var(--muted); font-size:15px; margin-top:10px;">${msg}</p>
+            <div class="hero-actions" style="margin-top:20px;">
+                <button class="btn-hero btn-play" onclick="switchMode('admin')">⚙️ Platform Manager</button>
+            </div>
+        `;
+    } else {
+        const hero = displayCatalog[0];
+        heroEl.style.backgroundImage = hero.poster ? `url('${hero.poster}')` : 'none';
+        if (!hero.poster) heroEl.style.background = 'linear-gradient(135deg, #1a0505, #0a0a14)';
+        const avg = Math.round(((parseInt(hero.stats?.vis)||5)+(parseInt(hero.stats?.story)||5)+(parseInt(hero.stats?.vfx)||5))/3);
+        const imdb = (avg / 10 * 9.9).toFixed(1);
+        const streams = Math.floor(platform.subscribers * (1 + avg/10));
+        const freshnessInfo = getFreshnessLabel(hero.weeksOnPlatform || 0);
+
+        contentEl.innerHTML = `
+            <div class="hero-n-badge"><span>N</span> ${hero.type.toUpperCase()}</div>
+            <div class="hero-title">${hero.title.toUpperCase()}</div>
+            <div class="hero-meta">
+                <span class="imdb-badge">IMDb ${imdb}</span>
+                <span class="hero-type-badge">${hero.genre || hero.type}</span>
+                <span class="freshness-pill ${freshnessInfo.cls}">${freshnessInfo.label}</span>
+            </div>
+            <div class="stream-count">
+                <span>${streams > 1000000 ? (streams/1000000).toFixed(1) + 'M+' : streams.toLocaleString()}</span> streams this week
+            </div>
+            <div class="hero-actions">
+                <button class="btn-hero btn-play">▶ Play</button>
+                <button class="btn-hero btn-info">ℹ More Info</button>
+            </div>
+        `;
+    }
+
+    const container = document.getElementById('platform-rows');
+    container.innerHTML = '';
+    if (currentFilter === 'mylist' && displayCatalog.length === 0) return;
+
+    platform.rows.forEach(rowName => {
+        const movies = displayCatalog.filter(p => p.row === rowName);
+        const cardsHTML = movies.length
+            ? movies.map(m => posterCardHTML(m)).join('')
+            : `<div class="empty-row-ghost"><div class="ghost-icon">🎬</div><span>Publish content<br>to this row</span></div>`;
+        container.innerHTML += `
+            <div class="row-section">
+                <div class="row-header">
+                    <div class="row-name">${rowName}</div>
+                    <span class="row-see-all">See all →</span>
+                </div>
+                <div class="row-track">${cardsHTML}</div>
+            </div>
+        `;
+    });
+}
+
+function posterCardHTML(movie) {
+    const avg = Math.round(((parseInt(movie.stats?.vis)||5)+(parseInt(movie.stats?.story)||5)+(parseInt(movie.stats?.vfx)||5))/3);
+    const imdb = (avg / 10 * 9.9).toFixed(1);
+    const freshPct = getFreshnessPercent(movie.weeksOnPlatform || 0);
+    const freshColor = freshPct > 60 ? 'var(--green)' : freshPct > 30 ? '#ffb400' : '#ff5050';
+    const inner = `
+        <div class="poster-fallback">
+            <div class="fallback-title">${movie.title}</div>
+            <div class="fallback-genre">${movie.genre || movie.type}</div>
+        </div>
+        <div class="card-hover-overlay">
+            <div class="hover-title">${movie.title}</div>
+            <div class="hover-imdb">★ ${imdb} IMDb</div>
+        </div>
+        <div class="hover-play-btn">▶</div>
+        <div class="freshness-bar-wrap">
+            <div class="freshness-bar" style="width:${freshPct}%; background:${freshColor};"></div>
+        </div>
+    `;
+    if (movie.poster) {
+        return `<div class="poster-card" style="background-image:url('${movie.poster}')" title="${movie.title}">${inner}</div>`;
+    }
+    return `<div class="poster-card" title="${movie.title}">${inner}</div>`;
+}
+
+function renderAdmin() {
+    const subs = platform.subscribers;
+    const revenue = subs * platform.subPrice;
+    const week = studioSave.state.week;
+    const vault = studioSave.state.finishedCatalog || [];
+
+    document.getElementById('stat-subs').innerText = subs.toLocaleString();
+    document.getElementById('stat-revenue').innerText = '$' + revenue.toLocaleString();
+    document.getElementById('stat-budget').innerText = '$' + studioSave.state.budget.toLocaleString();
+    document.getElementById('stat-catalog').innerText = platform.publishedCatalog.length;
+    document.getElementById('stat-vault-count').innerText = vault.length + ' in vault';
+
+    // Delta
+    const delta = subs - prevSubscribers;
+    const deltaEl = document.getElementById('stat-subs-delta');
+    if (delta > 0) deltaEl.innerHTML = `<span class="delta-up">▲ +${delta.toLocaleString()} this week</span>`;
+    else if (delta < 0) deltaEl.innerHTML = `<span style="color:#ff5555;">▼ ${delta.toLocaleString()} this week</span>`;
+    else deltaEl.innerHTML = `<span class="delta-neutral">No change</span>`;
+
+    // Equation
+    document.getElementById('eq-subs').innerText = subs.toLocaleString();
+    document.getElementById('eq-price').innerText = '$' + platform.subPrice;
+    document.getElementById('eq-total').innerText = '$' + revenue.toLocaleString();
+    document.getElementById('proj-payout').innerText = '$' + revenue.toLocaleString();
+    document.getElementById('next-week-label').innerText = week + 1;
+    document.getElementById('next-week-label-2').innerText = week + 1;
+
+    // Price slider sync
+    document.getElementById('price-slider').value = platform.subPrice;
+    document.getElementById('price-val').innerText = platform.subPrice;
+    document.getElementById('stat-subprice').innerText = platform.subPrice;
+    const warn = document.getElementById('churn-warn');
+    if (platform.subPrice > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
+    else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
+
+    // Vault select
+    document.getElementById('vault-select').innerHTML = vault.length
+        ? vault.map(p => `<option value="${p.title}">${p.title} (${p.type})</option>`).join('')
+        : '<option value="">— No finished projects —</option>';
+    document.getElementById('vault-count-badge').innerText = vault.length + ' ready';
+    document.getElementById('vault-preview-count').innerText = vault.length + ' unreleased';
+    document.getElementById('row-assign-select').innerHTML = platform.rows.map(r => `<option value="${r}">${r}</option>`).join('');
+
+    // Published list
+    const pubList = document.getElementById('published-list');
+    if (platform.publishedCatalog.length === 0) {
+        pubList.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>Nothing published yet.</p></div>`;
+    } else {
+        pubList.innerHTML = platform.publishedCatalog.map(p => {
+            const freshPct = getFreshnessPercent(p.weeksOnPlatform || 0);
+            const freshInfo = getFreshnessLabel(p.weeksOnPlatform || 0);
+            const freshColor = freshPct > 60 ? 'var(--green)' : freshPct > 30 ? '#ffb400' : '#ff5050';
+            return `
+            <div class="published-item">
+                <div>
+                    <div class="item-title">${p.title}</div>
+                    <div class="item-meta">Row: ${p.row} · ${p.featured ? '⭐ Featured' : 'Standard'}</div>
+                    <div class="item-freshness">
+                        <div class="item-fresh-bar"><div class="item-fresh-fill" style="width:${freshPct}%; background:${freshColor};"></div></div>
+                        <span class="freshness-pill ${freshInfo.cls}" style="padding:1px 6px; font-size:10px;">${freshInfo.label}</span>
+                        <span style="font-size:10px; color:var(--muted);">Wk ${p.weeksOnPlatform||0}</span>
+                    </div>
+                </div>
+                <button class="btn-danger" onclick="unpublishProject('${p.title.replace(/'/g,"\\'")}')">Remove</button>
+            </div>`;
+        }).join('');
+    }
+    document.getElementById('published-count-badge').innerText = platform.publishedCatalog.length;
+
+    // Rows list
+    document.getElementById('rows-count-badge').innerText = platform.rows.length + ' rows';
+    document.getElementById('rows-list').innerHTML = platform.rows.map(r => `
+        <div class="row-item">
+            <div>
+                <strong>${r}</strong>
+                <span style="font-size:11px; color:var(--muted); margin-left:8px;">${platform.publishedCatalog.filter(p=>p.row===r).length} titles</span>
+            </div>
+            ${platform.rows.length > 1 ? `<button class="btn-danger" onclick="deleteRow('${r.replace(/'/g,"\\'")}')">Delete</button>` : ''}
+        </div>`).join('');
+
+    // Vault preview
+    const vaultPreview = document.getElementById('vault-preview-list');
+    if (vault.length === 0) {
+        vaultPreview.innerHTML = `<div class="empty-state"><div class="empty-icon">🎬</div><p>Finish projects in Studio to populate vault.</p></div>`;
+    } else {
+        vaultPreview.innerHTML = vault.map(p => {
+            const avg = Math.round(((parseInt(p.stats?.vis)||5)+(parseInt(p.stats?.story)||5)+(parseInt(p.stats?.vfx)||5))/3);
+            const imdb = (avg / 10 * 9.9).toFixed(1);
+            return `
+            <div class="vault-item">
+                <div>
+                    <div class="item-title">${p.title}</div>
+                    <div class="item-meta">${p.type} · IMDb ~${imdb}</div>
+                </div>
+                <span style="font-size:11px; color:var(--accent); font-weight:700;">READY</span>
+            </div>`;
+        }).join('');
+    }
+
+    // Update publish preview if something selected
+    updatePublishPreview();
+}
+
+function executeSearch() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const matches = q.length < 1 ? [] : platform.publishedCatalog.filter(p =>
+        p.title.toLowerCase().includes(q) || (p.type||'').toLowerCase().includes(q) || (p.genre||'').toLowerCase().includes(q)
+    );
+    const label = document.getElementById('search-count-label');
+    label.innerText = q.length > 0 ? `${matches.length} result${matches.length !== 1 ? 's' : ''}` : '';
+    if (q.length > 0 && matches.length === 0) {
+        document.getElementById('search-results').innerHTML = `<div class="no-results">No titles match "<strong>${q}</strong>"</div>`;
+    } else {
+        document.getElementById('search-results').innerHTML = matches.map(m => posterCardHTML(m)).join('');
+    }
+}
+
+function switchMode(mode, filter = 'all') {
+    ['viewer-shell','search-shell','admin-shell'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`${mode}-shell`).classList.remove('hidden');
+
+    let navId = 'nav-home';
+    if (mode === 'search') navId = 'nav-search';
+    else if (mode === 'admin') navId = 'nav-admin';
+    else {
+        if (filter === 'series') navId = 'nav-series';
+        else if (filter === 'movies') navId = 'nav-movies';
+        else if (filter === 'trending') navId = 'nav-trending';
+        else if (filter === 'mylist') navId = 'nav-mylist';
+        currentFilter = filter;
+        renderViewer();
+    }
+    if (mode === 'admin') renderAdmin();
+    document.getElementById(navId).classList.add('active');
+}
+
+function toast(msg, type = 'default') {
+    const c = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = 'toast' + (type !== 'default' ? ' ' + type : '');
+    el.innerText = msg;
+    c.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+}
+
+function renderAll() { renderViewer(); if (!document.getElementById('admin-shell').classList.contains('hidden')) renderAdmin(); }
+
+window.onload = init;
+</script>
+</body>
+</html>

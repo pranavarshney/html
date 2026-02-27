@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talent Manager - Studio Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0d0f;
+            --surface: #161618;
+            --surface2: #1e1e22;
+            --surface3: #26262c;
+            --border: #2e2e36;
+            --text: #f0f0f2;
+            --muted: #7a7a8c;
+            --accent: #e8003d;
+            --accent-hover: #ff1a52;
+            --green: #00c97a;
+            --orange: #ff8c00;
+            --blue: #4da6ff;
+            --radius: 6px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── TOP BAR ── */
+        .top-bar {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: rgba(13,13,15,0.97);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            height: 56px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 200;
+            gap: 12px;
+        }
+
+        .top-bar-left { display: flex; align-items: center; gap: 14px; }
+        .top-bar-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--orange); white-space: nowrap; }
+
+        .back-link {
+            font-size: 12px; color: var(--muted); text-decoration: none;
+            display: flex; align-items: center; gap: 4px;
+            background: var(--surface2); border: 1px solid var(--border);
+            padding: 4px 10px; border-radius: var(--radius);
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .back-link:hover { color: var(--text); border-color: #444; }
+
+        .top-bar-stats { display: flex; gap: 20px; align-items: center; flex: 1; justify-content: center; }
+        .stat-chip { display: flex; flex-direction: column; align-items: center; }
+        .stat-chip .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-chip .value { font-size: 15px; font-weight: 700; }
+        .stat-chip .value.actors  { color: var(--blue); }
+        .stat-chip .value.directors { color: var(--orange); }
+        .stat-chip .value.writers { color: var(--green); }
+        .stat-chip .value.payroll { color: #ffd700; }
+
+        .top-bar-actions { display: flex; gap: 8px; }
+        .btn-util {
+            font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+            background: var(--surface3); color: var(--muted); border: 1px solid var(--border);
+            border-radius: var(--radius); cursor: pointer; padding: 6px 12px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-util:hover { background: #333; color: var(--text); }
+
+        /* ── LAYOUT ── */
+        .app {
+            margin-top: 56px;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            padding: 20px;
+            height: calc(100vh - 56px);
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 18px;
+            letter-spacing: 2px;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* ── FORM ── */
+        .form-group { margin-bottom: 14px; }
+        label.field-label {
+            display: block; font-size: 11px; text-transform: uppercase;
+            letter-spacing: 0.8px; color: var(--muted); margin-bottom: 6px;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%; padding: 10px 12px; background: var(--surface2);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px;
+            transition: border-color 0.15s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
+
+        /* Role description hint */
+        .role-desc {
+            font-size: 11px; color: var(--muted); margin-top: 5px;
+            padding: 6px 10px; background: var(--surface3); border-radius: var(--radius);
+            border-left: 2px solid var(--border); line-height: 1.4;
+            transition: border-color 0.2s;
+        }
+        .role-desc.Actor   { border-left-color: var(--blue); }
+        .role-desc.Director{ border-left-color: var(--orange); }
+        .role-desc.Writer  { border-left-color: var(--green); }
+
+        /* Salary tier + power preview */
+        .salary-preview {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 6px; min-height: 22px;
+        }
+        .salary-tier-badge {
+            font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+            text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s;
+        }
+        .tier-budget     { background: rgba(122,122,140,0.15); color: var(--muted); }
+        .tier-midtier    { background: rgba(77,166,255,0.15);  color: var(--blue); }
+        .tier-alist      { background: rgba(255,140,0,0.15);   color: var(--orange); }
+        .tier-superstar  { background: rgba(255,215,0,0.2);    color: #ffd700; }
+        .salary-power    { font-size: 12px; color: var(--muted); }
+
+        /* ── BUTTONS ── */
+        button {
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+            border: none; border-radius: var(--radius); cursor: pointer;
+            padding: 10px 16px; transition: all 0.15s;
+        }
+        .btn-primary { background: var(--accent); color: #fff; width: 100%; margin-top: 4px; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-secondary { background: var(--surface3); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #333; }
+        .btn-danger-outline { background: transparent; border: 1px solid rgba(255,68,68,0.4); color: #ff6666; padding: 4px 8px; font-size: 11px; font-weight: 600; }
+        .btn-danger-outline:hover { background: rgba(255,68,68,0.1); border-color: #ff4444; }
+        .btn-edit { background: transparent; border: 1px solid rgba(77,166,255,0.3); color: var(--blue); padding: 4px 8px; font-size: 11px; font-weight: 600; }
+        .btn-edit:hover { background: rgba(77,166,255,0.1); border-color: var(--blue); }
+        .btn-sm-green { background: rgba(0,201,122,0.15); border: 1px solid rgba(0,201,122,0.3); color: var(--green); padding: 4px 10px; font-size: 11px; font-weight: 700; }
+        .btn-sm-green:hover { background: rgba(0,201,122,0.25); }
+        .btn-sm-cancel { background: var(--surface3); border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; font-size: 11px; }
+        .btn-sm-cancel:hover { background: #333; color: var(--text); }
+
+        /* ── PAYROLL STRIP ── */
+        .payroll-strip {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 10px 14px;
+            margin-bottom: 14px; font-size: 12px; color: var(--muted);
+            display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
+        }
+        .payroll-strip strong { color: var(--text); }
+        .payroll-strip .ps-divider { color: var(--border); }
+
+        /* ── FILTER BAR ── */
+        .filter-bar {
+            display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;
+        }
+        .filter-search {
+            flex: 1; min-width: 120px; padding: 7px 12px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--radius); color: var(--text);
+            font-family: 'DM Sans', sans-serif; font-size: 13px;
+        }
+        .filter-search:focus { outline: none; border-color: var(--accent); }
+        .filter-btn {
+            padding: 6px 12px; font-size: 12px; font-weight: 700;
+            border-radius: var(--radius); cursor: pointer; border: 1px solid var(--border);
+            background: var(--surface2); color: var(--muted);
+            transition: all 0.15s; white-space: nowrap;
+        }
+        .filter-btn:hover { color: var(--text); border-color: #444; }
+        .filter-btn.active-all      { background: rgba(255,255,255,0.08); color: var(--text); border-color: #555; }
+        .filter-btn.active-Actor    { background: rgba(77,166,255,0.12); color: var(--blue); border-color: rgba(77,166,255,0.3); }
+        .filter-btn.active-Director { background: rgba(255,140,0,0.12); color: var(--orange); border-color: rgba(255,140,0,0.3); }
+        .filter-btn.active-Writer   { background: rgba(0,201,122,0.12); color: var(--green); border-color: rgba(0,201,122,0.3); }
+
+        .sort-select {
+            padding: 6px 10px; font-size: 12px; font-weight: 600;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--radius); color: var(--muted);
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+        }
+        .sort-select:focus { outline: none; border-color: var(--accent); }
+
+        /* ── ROSTER GRID ── */
+        .roster-container { overflow-y: auto; flex: 1; padding-right: 4px; }
+        .roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+
+        /* ── TALENT CARD ── */
+        .talent-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border-left: 3px solid var(--border);
+            transition: border-color 0.2s, opacity 0.2s;
+            position: relative;
+        }
+        .talent-card.Actor    { border-left-color: var(--blue); }
+        .talent-card.Director { border-left-color: var(--orange); }
+        .talent-card.Writer   { border-left-color: var(--green); }
+        .talent-card.is-working { opacity: 0.6; }
+        .talent-card.flash-saved { animation: flashSaved 0.6s ease; }
+        @keyframes flashSaved {
+            0%   { background: rgba(0,201,122,0.2); border-color: var(--green); }
+            100% { background: var(--surface2); }
+        }
+
+        .tc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        .tc-name { font-size: 15px; font-weight: 600; }
+        .tc-role-row { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+        .tc-role { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .tc-power { font-size: 11px; color: var(--muted); }
+
+        .tc-project { font-size: 11px; color: var(--orange); margin-top: 3px; }
+
+        .tc-stats {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 13px; margin-top: 8px; padding-top: 8px;
+            border-top: 1px solid var(--border);
+            gap: 6px;
+        }
+        .tc-salary { color: var(--text); font-weight: 600; font-size: 13px; }
+        .tc-actions { display: flex; gap: 5px; }
+
+        /* Fire confirm inline */
+        .fire-confirm {
+            display: none; align-items: center; gap: 6px;
+            background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.2);
+            border-radius: var(--radius); padding: 8px 10px; margin-top: 8px;
+            font-size: 12px; color: #ff8888;
+        }
+        .fire-confirm.show { display: flex; }
+        .fire-confirm span { flex: 1; }
+
+        /* Inline edit mode */
+        .tc-edit-mode { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+        .tc-edit-mode.show { display: block; }
+        .tc-edit-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: flex-end; }
+        .tc-edit-input {
+            flex: 1; padding: 7px 10px; background: #111; border: 1px solid #444;
+            border-radius: var(--radius); color: var(--text);
+            font-family: 'DM Sans', sans-serif; font-size: 13px;
+        }
+        .tc-edit-input:focus { outline: none; border-color: var(--accent); }
+        .tc-edit-hint {
+            font-size: 10px; color: var(--muted); margin-bottom: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .tc-edit-actions { display: flex; gap: 6px; }
+
+        .badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 12px; text-transform: uppercase; }
+        .badge-idle    { background: rgba(0,201,122,0.15); color: var(--green); }
+        .badge-working { background: rgba(255,140,0,0.15); color: var(--orange); }
+
+        .empty-state { text-align: center; color: var(--muted); padding: 40px; font-size: 14px; grid-column: 1 / -1; }
+
+        /* ── STARTER PACK MODAL ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            z-index: 2000; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
+            padding: 28px; max-width: 480px; width: 90%;
+            transform: translateY(16px); transition: transform 0.2s; position: relative;
+            max-height: 80vh; display: flex; flex-direction: column;
+        }
+        .modal-overlay.open .modal { transform: translateY(0); }
+        .modal-close {
+            position: absolute; top: 14px; right: 14px;
+            background: #333; border: none; color: white; width: 26px; height: 26px;
+            border-radius: 50%; cursor: pointer; font-size: 14px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: white; margin-bottom: 4px; letter-spacing: 2px; }
+        .modal-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+        .modal-list { overflow-y: auto; flex: 1; margin-bottom: 16px; }
+        .modal-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 10px; border-bottom: 1px solid #222; font-size: 13px;
+        }
+        .modal-item:last-child { border-bottom: none; }
+        .modal-item-name { font-weight: 600; }
+        .modal-item-role { font-size: 11px; color: var(--muted); margin-top: 1px; }
+        .modal-item-salary { font-size: 12px; color: var(--text); font-weight: 500; }
+        .modal-confirm-btn {
+            width: 100%; background: var(--orange); color: black;
+            border: none; padding: 12px; font-size: 15px; font-weight: 800;
+            cursor: pointer; border-radius: var(--radius); font-family: inherit;
+            transition: background 0.15s;
+        }
+        .modal-confirm-btn:hover { background: #ffaa33; }
+
+        /* ── TOAST ── */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast { background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; max-width: 320px; animation: toast-in 0.2s ease, toast-out 0.3s ease 3.7s forwards; pointer-events: none; }
+        .toast.success { border-left-color: var(--green); }
+        .toast.warn { border-left-color: var(--orange); }
+        @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toast-out { from { opacity: 1; } to { opacity: 0; } }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="top-bar-left">
+        <div class="top-bar-logo">📋 Talent Manager</div>
+        <a class="back-link" href="index.html">← Dashboard</a>
+        <a class="back-link" href="studio.html">🎬 Studio</a>
+    </div>
+    <div class="top-bar-stats">
+        <div class="stat-chip">
+            <span class="label">Actors</span>
+            <span class="value actors" id="count-actors">0</span>
+        </div>
+        <div class="stat-chip">
+            <span class="label">Directors</span>
+            <span class="value directors" id="count-directors">0</span>
+        </div>
+        <div class="stat-chip">
+            <span class="label">Writers</span>
+            <span class="value writers" id="count-writers">0</span>
+        </div>
+        <div class="stat-chip">
+            <span class="label">Total Payroll</span>
+            <span class="value payroll" id="total-payroll">$0</span>
+        </div>
+    </div>
+    <div class="top-bar-actions">
+        <!-- kept for layout, nav is in top-bar-left -->
+    </div>
+</div>
+
+<div class="app">
+    <!-- LEFT: ADD FORM -->
+    <div class="panel">
+        <div class="panel-title">Add New Talent</div>
+
+        <form id="add-talent-form" onsubmit="addTalent(event)">
+            <div class="form-group">
+                <label class="field-label">Name</label>
+                <input type="text" id="t-name" placeholder="e.g., Satoru G." required autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label class="field-label">Role</label>
+                <select id="t-role" onchange="updateRoleDesc(); updateSalaryPreview()">
+                    <option value="Actor">Actor</option>
+                    <option value="Director">Director</option>
+                    <option value="Writer">Writer</option>
+                </select>
+                <div class="role-desc Actor" id="role-desc">Actors drive audience appeal and subscriber gains on StreamVault. Leads get 100% of salary, side roles 50%, extras 10%.</div>
+            </div>
+
+            <div class="form-group">
+                <label class="field-label">Base Salary ($)</label>
+                <input type="number" id="t-salary" placeholder="e.g., 500000" required min="1000" step="1000" oninput="updateSalaryPreview()">
+                <div class="salary-preview">
+                    <span class="salary-tier-badge tier-budget" id="salary-tier-badge">— Enter salary</span>
+                    <span class="salary-power" id="salary-power-preview"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">➕ Hire Talent</button>
+        </form>
+
+        <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border);">
+            <label class="field-label">Quick Tools</label>
+            <button class="btn-secondary" style="width: 100%;" onclick="openStarterPackModal()">📦 Preview & Load Starter Pack (21)</button>
+            <p style="font-size: 10px; color: var(--muted); margin-top: 8px; text-align: center;">Injects default characters to save time.</p>
+        </div>
+    </div>
+
+    <!-- RIGHT: ROSTER -->
+    <div class="panel">
+        <div class="panel-title">
+            Industry Database
+            <div style="display:flex; gap: 10px; font-size: 12px; font-family: 'DM Sans'; letter-spacing: normal;">
+                <span style="color:var(--blue)">■ Actor</span>
+                <span style="color:var(--orange)">■ Director</span>
+                <span style="color:var(--green)">■ Writer</span>
+            </div>
+        </div>
+
+        <!-- Payroll strip -->
+        <div class="payroll-strip" id="payroll-strip">
+            <span>0 talent</span>
+            <span class="ps-divider">·</span>
+            <span>$0 total payroll</span>
+            <span class="ps-divider">·</span>
+            <span>0 idle</span>
+            <span class="ps-divider">·</span>
+            <span>0 working</span>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <input type="text" class="filter-search" id="filter-search" placeholder="Search by name..." oninput="renderRoster()">
+            <button class="filter-btn active-all" id="fb-all"      onclick="setFilter('all')">All</button>
+            <button class="filter-btn" id="fb-Actor"    onclick="setFilter('Actor')">Actors</button>
+            <button class="filter-btn" id="fb-Director" onclick="setFilter('Director')">Directors</button>
+            <button class="filter-btn" id="fb-Writer"   onclick="setFilter('Writer')">Writers</button>
+            <select class="sort-select" id="sort-select" onchange="renderRoster()">
+                <option value="role-salary">Sort: Role → Salary ↓</option>
+                <option value="salary-desc">Salary: High → Low</option>
+                <option value="salary-asc">Salary: Low → High</option>
+                <option value="idle-first">Status: Idle First</option>
+                <option value="name-az">Name: A → Z</option>
+            </select>
+        </div>
+
+        <div class="roster-container">
+            <div class="roster-grid" id="roster-grid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- STARTER PACK MODAL -->
+<div class="modal-overlay" id="starter-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeStarterPackModal()">✕</button>
+        <div class="modal-title">Starter Pack</div>
+        <div class="modal-subtitle">21 pre-built talent entries will be added to your roster.</div>
+        <div class="modal-list" id="starter-modal-list"></div>
+        <button class="modal-confirm-btn" onclick="confirmLoadStarterPack()">📦 Load All 21 into Roster</button>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ── STATE ──
+let savedData = { state: { talent: [] }, undoStack: [] };
+let currentFilter = 'all';
+
+const starterPack = [
+    { name: "Joe F.",              role: "Director", salary: 190000 },
+    { name: "Chris N.",            role: "Director", salary: 2500000 },
+    { name: "Akira T.",            role: "Director", salary: 1800000 },
+    { name: "Sarah W.",            role: "Director", salary: 85000 },
+    { name: "Eiichiro O.",         role: "Writer",   salary: 3000000 },
+    { name: "Gege A.",             role: "Writer",   salary: 1500000 },
+    { name: "Koyoharu G.",         role: "Writer",   salary: 1200000 },
+    { name: "Tite K.",             role: "Writer",   salary: 1100000 },
+    { name: "Jane Smith",          role: "Writer",   salary: 60000 },
+    { name: "Bob Writer",          role: "Writer",   salary: 35000 },
+    { name: "Simon Bill",          role: "Actor",    salary: 900999 },
+    { name: "Satoru G.",           role: "Actor",    salary: 4500000 },
+    { name: "Monkey D. L.",        role: "Actor",    salary: 3800000 },
+    { name: "Naruto U.",           role: "Actor",    salary: 3500000 },
+    { name: "Roronoa Z.",          role: "Actor",    salary: 2800000 },
+    { name: "Guts B.",             role: "Actor",    salary: 2500000 },
+    { name: "Ichigo K.",           role: "Actor",    salary: 2200000 },
+    { name: "Tom Extra",           role: "Actor",    salary: 45000 },
+    { name: "Lucy Background",     role: "Actor",    salary: 38000 },
+    { name: "Guy Standing",        role: "Actor",    salary: 15000 },
+    { name: "Screaming Villager 1",role: "Actor",    salary: 5000 }
+];
+
+function init() {
+    loadGame();
+    updateRoleDesc();
+    renderRoster();
+}
+
+// ── DATA ──
+function loadGame() {
+    const saved = localStorage.getItem('studioHubSave_v2');
+    if (saved) {
+        try {
+            let masterSave = JSON.parse(saved);
+            savedData = masterSave;
+            if (!savedData.state) savedData.state = {};
+            if (!savedData.state.talent) savedData.state.talent = [];
+        } catch(e) { console.warn("Could not parse save data. Creating new."); }
+    }
+}
+
+function saveGame() {
+    let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || { state: {} };
+    if (!masterSave.state) masterSave.state = {};
+    masterSave.state.talent = savedData.state.talent;
+    localStorage.setItem('studioHubSave_v2', JSON.stringify(masterSave));
+}
+
+// ── ADD TALENT ──
+function addTalent(e) {
+    e.preventDefault();
+    const name   = document.getElementById('t-name').value.trim();
+    const role   = document.getElementById('t-role').value;
+    const salary = parseInt(document.getElementById('t-salary').value);
+    let newId = savedData.state.talent.length > 0 ? Math.max(...savedData.state.talent.map(t => t.id)) + 1 : 1;
+    savedData.state.talent.push({ id: newId, name, role, salary, status: 'Idle', project: '' });
+    saveGame();
+    renderRoster();
+    toast(`✅ ${name} hired as ${role}.`, 'success');
+    document.getElementById('t-name').value = '';
+    document.getElementById('t-salary').value = '';
+    document.getElementById('salary-tier-badge').textContent = '— Enter salary';
+    document.getElementById('salary-tier-badge').className = 'salary-tier-badge tier-budget';
+    document.getElementById('salary-power-preview').textContent = '';
+    document.getElementById('t-name').focus();
+}
+
+// ── DELETE (inline confirm, no alert/confirm dialog) ──
+function askFireTalent(id) {
+    const card = document.querySelector(`.talent-card[data-id="${id}"]`);
+    if (!card) return;
+    const fc = card.querySelector('.fire-confirm');
+    if (fc) fc.classList.add('show');
+}
+
+function cancelFire(id) {
+    const card = document.querySelector(`.talent-card[data-id="${id}"]`);
+    if (!card) return;
+    const fc = card.querySelector('.fire-confirm');
+    if (fc) fc.classList.remove('show');
+}
+
+function confirmFire(id) {
+    const talent = savedData.state.talent.find(t => t.id === id);
+    if (!talent) return;
+    if (talent.status === 'Working') {
+        toast(`❌ Can't fire ${talent.name} while on a project.`, 'warn');
+        cancelFire(id);
+        return;
+    }
+    const name = talent.name;
+    savedData.state.talent = savedData.state.talent.filter(t => t.id !== id);
+    saveGame();
+    renderRoster();
+    toast(`🔥 ${name} was fired.`);
+}
+
+// ── EDIT (inline on-card) ──
+function startEdit(id) {
+    const card = document.querySelector(`.talent-card[data-id="${id}"]`);
+    if (!card) return;
+    const talent = savedData.state.talent.find(t => t.id === id);
+    if (!talent) return;
+    const editZone = card.querySelector('.tc-edit-mode');
+    editZone.classList.add('show');
+    card.querySelector('.tc-edit-name').value = talent.name;
+    card.querySelector('.tc-edit-salary').value = talent.salary;
+    updateEditSalaryHint(id);
+    card.querySelector('.tc-edit-name').focus();
+}
+
+function cancelEdit(id) {
+    const card = document.querySelector(`.talent-card[data-id="${id}"]`);
+    if (!card) return;
+    card.querySelector('.tc-edit-mode').classList.remove('show');
+    cancelFire(id);
+}
+
+function saveEdit(id) {
+    const card = document.querySelector(`.talent-card[data-id="${id}"]`);
+    if (!card) return;
+    const newName   = card.querySelector('.tc-edit-name').value.trim();
+    const newSalary = parseInt(card.querySelector('.tc-edit-salary').value);
+    if (!newName || isNaN(newSalary) || newSalary < 1000) {
+        toast('Invalid name or salary.', 'warn'); return;
+    }
+    const talent = savedData.state.talent.find(t => t.id === id);
+    if (!talent) return;
+    talent.name   = newName;
+    talent.salary = newSalary;
+    saveGame();
+    renderRoster();
+    // Flash the saved card
+    setTimeout(() => {
+        const updated = document.querySelector(`.talent-card[data-id="${id}"]`);
+        if (updated) { updated.classList.add('flash-saved'); setTimeout(() => updated.classList.remove('flash-saved'), 650); }
+    }, 50);
+    toast(`✏️ ${newName} updated.`, 'success');
+}
+
+function updateEditSalaryHint(id) {
+    const card = document.querySelector(`.talent-card[data-id="${id}"]`);
+    if (!card) return;
+    const val = parseInt(card.querySelector('.tc-edit-salary').value) || 0;
+    const hint = card.querySelector('.tc-edit-hint');
+    const { tierLabel, tierClass, power } = getSalaryTier(val);
+    hint.innerHTML = `<span class="salary-tier-badge ${tierClass}">${val > 0 ? tierLabel : '—'}</span><span style="color:var(--muted)">${val > 0 ? '⭐'.repeat(power) + ' Power ' + power + '/5' : ''}</span>`;
+}
+
+// ── STARTER PACK ──
+function openStarterPackModal() {
+    const list = document.getElementById('starter-modal-list');
+    list.innerHTML = starterPack.map(p => {
+        const roleColor = p.role === 'Actor' ? 'var(--blue)' : p.role === 'Director' ? 'var(--orange)' : 'var(--green)';
+        return `
+        <div class="modal-item">
+            <div>
+                <div class="modal-item-name">${p.name}</div>
+                <div class="modal-item-role" style="color:${roleColor}">${p.role}</div>
+            </div>
+            <div class="modal-item-salary">$${p.salary.toLocaleString()}</div>
+        </div>`;
+    }).join('');
+    document.getElementById('starter-modal').classList.add('open');
+}
+
+function closeStarterPackModal() {
+    document.getElementById('starter-modal').classList.remove('open');
+}
+
+function confirmLoadStarterPack() {
+    let currentId = savedData.state.talent.length > 0 ? Math.max(...savedData.state.talent.map(t => t.id)) + 1 : 1;
+    starterPack.forEach(p => {
+        savedData.state.talent.push({ id: currentId++, name: p.name, role: p.role, salary: p.salary, status: 'Idle', project: '' });
+    });
+    saveGame();
+    renderRoster();
+    closeStarterPackModal();
+    toast(`📦 Starter Pack loaded! 21 talent added.`, 'success');
+}
+
+// ── FILTER & SORT ──
+function setFilter(f) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => {
+        b.className = 'filter-btn';
+        const bid = b.id.replace('fb-','');
+        if (bid === f || (bid === 'all' && f === 'all')) b.classList.add(`active-${f === 'all' ? 'all' : f}`);
+    });
+    renderRoster();
+}
+
+function getSortedFiltered(talentArray) {
+    const q = document.getElementById('filter-search').value.toLowerCase().trim();
+    const sort = document.getElementById('sort-select').value;
+
+    let arr = [...talentArray];
+    if (currentFilter !== 'all') arr = arr.filter(t => t.role === currentFilter);
+    if (q) arr = arr.filter(t => t.name.toLowerCase().includes(q));
+
+    if (sort === 'role-salary') {
+        const roleOrder = { Director: 1, Writer: 2, Actor: 3 };
+        arr.sort((a,b) => roleOrder[a.role] !== roleOrder[b.role] ? roleOrder[a.role] - roleOrder[b.role] : b.salary - a.salary);
+    } else if (sort === 'salary-desc') arr.sort((a,b) => b.salary - a.salary);
+    else if (sort === 'salary-asc')  arr.sort((a,b) => a.salary - b.salary);
+    else if (sort === 'idle-first')  arr.sort((a,b) => (a.status === 'Idle' ? -1 : 1) - (b.status === 'Idle' ? -1 : 1));
+    else if (sort === 'name-az')     arr.sort((a,b) => a.name.localeCompare(b.name));
+    return arr;
+}
+
+// ── SALARY TIER HELPERS ──
+function getSalaryTier(salary) {
+    if (!salary || salary < 1000) return { tierLabel: '— Enter salary', tierClass: 'tier-budget', power: 0 };
+    const power = Math.min(5, Math.max(1, Math.ceil(salary / 1000000)));
+    if (salary < 100000)    return { tierLabel: 'Budget',    tierClass: 'tier-budget',    power };
+    if (salary < 1000000)   return { tierLabel: 'Mid-Tier',  tierClass: 'tier-midtier',   power };
+    if (salary < 3000000)   return { tierLabel: 'A-List',    tierClass: 'tier-alist',     power };
+    return                           { tierLabel: 'Superstar 🌟', tierClass: 'tier-superstar', power };
+}
+
+function updateSalaryPreview() {
+    const val = parseInt(document.getElementById('t-salary').value) || 0;
+    const { tierLabel, tierClass, power } = getSalaryTier(val);
+    const badge = document.getElementById('salary-tier-badge');
+    badge.textContent = tierLabel;
+    badge.className = 'salary-tier-badge ' + tierClass;
+    document.getElementById('salary-power-preview').textContent = val > 0 ? '⭐'.repeat(power) + ' Power ' + power + '/5' : '';
+}
+
+function updateRoleDesc() {
+    const role = document.getElementById('t-role').value;
+    const descs = {
+        Actor:    'Actors drive audience appeal and subscriber gains on StreamVault. Leads get 100% of salary, side roles 50%, extras 10%.',
+        Director: 'Directors multiply production quality and can accelerate timelines. Higher salary = greater multiplier on final project score.',
+        Writer:   'Writers boost the Story stat directly. Strong story scores have outsized IMDb impact and long-term streaming value.'
+    };
+    const el = document.getElementById('role-desc');
+    el.textContent = descs[role];
+    el.className = 'role-desc ' + role;
+}
+
+// ── RENDER ──
+function renderRoster() {
+    const grid = document.getElementById('roster-grid');
+    const talentArray = savedData.state.talent;
+
+    // Top bar counts
+    const actors    = talentArray.filter(t => t.role === 'Actor').length;
+    const directors = talentArray.filter(t => t.role === 'Director').length;
+    const writers   = talentArray.filter(t => t.role === 'Writer').length;
+    const payroll   = talentArray.reduce((s,t) => s + (t.salary||0), 0);
+    const idle      = talentArray.filter(t => t.status === 'Idle').length;
+    const working   = talentArray.filter(t => t.status === 'Working').length;
+
+    document.getElementById('count-actors').innerText    = actors;
+    document.getElementById('count-directors').innerText = directors;
+    document.getElementById('count-writers').innerText   = writers;
+    document.getElementById('total-payroll').innerText   = '$' + payroll.toLocaleString();
+
+    // Payroll strip
+    document.getElementById('payroll-strip').innerHTML = `
+        <strong>${talentArray.length}</strong> talent
+        <span class="ps-divider">·</span>
+        <strong>$${payroll.toLocaleString()}</strong> total payroll
+        <span class="ps-divider">·</span>
+        <strong style="color:var(--green)">${idle}</strong> idle
+        <span class="ps-divider">·</span>
+        <strong style="color:var(--orange)">${working}</strong> working
+    `;
+
+    const sorted = getSortedFiltered(talentArray);
+
+    if (sorted.length === 0) {
+        grid.innerHTML = talentArray.length === 0
+            ? `<div class="empty-state">No talent in database.<br>Hire someone or load the Starter Pack!</div>`
+            : `<div class="empty-state">No talent matches your filter.</div>`;
+        return;
+    }
+
+    grid.innerHTML = '';
+    sorted.forEach(t => {
+        const isWorking = t.status === 'Working';
+        const { tierLabel, tierClass, power } = getSalaryTier(t.salary);
+        const powerStars = '⭐'.repeat(power);
+        const statusBadge = isWorking
+            ? `<span class="badge badge-working">WORKING</span>`
+            : `<span class="badge badge-idle">IDLE</span>`;
+
+        const card = document.createElement('div');
+        card.className = `talent-card ${t.role}${isWorking ? ' is-working' : ''}`;
+        card.dataset.id = t.id;
+
+        card.innerHTML = `
+            <div class="tc-header">
+                <div>
+                    <div class="tc-name">${t.name}</div>
+                    <div class="tc-role-row">
+                        <span class="tc-role">${t.role}</span>
+                        <span class="tc-power">${powerStars} ${power}/5</span>
+                    </div>
+                    ${isWorking ? `<div class="tc-project">📽 ${t.project}</div>` : ''}
+                </div>
+                ${statusBadge}
+            </div>
+            <div class="tc-stats">
+                <span class="tc-salary">$${t.salary.toLocaleString()}</span>
+                <span class="salary-tier-badge ${tierClass}" style="font-size:10px;">${tierLabel}</span>
+                <div class="tc-actions">
+                    ${!isWorking ? `<button class="btn-edit" onclick="startEdit(${t.id})">✏ Edit</button>` : ''}
+                    ${!isWorking ? `<button class="btn-danger-outline" onclick="askFireTalent(${t.id})">Fire</button>` : ''}
+                </div>
+            </div>
+
+            <!-- Inline edit mode -->
+            <div class="tc-edit-mode">
+                <div class="tc-edit-row">
+                    <input type="text" class="tc-edit-input tc-edit-name" placeholder="Name" value="${t.name}">
+                </div>
+                <div class="tc-edit-row">
+                    <input type="number" class="tc-edit-input tc-edit-salary" placeholder="Salary" value="${t.salary}" min="1000" step="1000"
+                        oninput="updateEditSalaryHint(${t.id})">
+                </div>
+                <div class="tc-edit-hint">
+                    <span class="salary-tier-badge ${tierClass}">${tierLabel}</span>
+                    <span style="color:var(--muted)">${powerStars} Power ${power}/5</span>
+                </div>
+                <div class="tc-edit-actions">
+                    <button class="btn-sm-green" onclick="saveEdit(${t.id})">✓ Save</button>
+                    <button class="btn-sm-cancel" onclick="cancelEdit(${t.id})">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Inline fire confirm -->
+            <div class="fire-confirm">
+                <span>Fire this talent permanently?</span>
+                <button class="btn-sm-green" style="background:rgba(255,68,68,0.15);border-color:rgba(255,68,68,0.3);color:#ff6666;" onclick="confirmFire(${t.id})">Confirm</button>
+                <button class="btn-sm-cancel" onclick="cancelFire(${t.id})">Cancel</button>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function toast(msg, type = '') {
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = 'toast' + (type ? ' ' + type : '');
+    el.innerText = msg;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 4200);
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

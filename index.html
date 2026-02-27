@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Tycoon - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --surface: #141417;
+            --border: #2a2a32;
+            --text: #ffffff;
+            --muted: #888899;
+            --accent: #E50914; /* StreamVault Red */
+            --studio: #4da6ff; /* Studio Blue */
+            --talent: #ff8c00; /* Talent Orange */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg); color: var(--text);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px;
+        }
+
+        .header { text-align: center; margin-bottom: 40px; }
+        .title { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; letter-spacing: 3px; margin-bottom: 10px;}
+        .subtitle { color: var(--muted); font-size: 1.1rem; }
+
+        .stats-bar {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 20px 40px; display: flex; gap: 40px;
+            margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .stat { display: flex; flex-direction: column; align-items: center; }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 5px;}
+        .stat-value { font-size: 1.8rem; font-weight: 700; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;}
+
+        .nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1000px; width: 100%; }
+
+        .app-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 30px; text-decoration: none; color: white;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+        }
+        .app-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
+        
+        .app-icon { font-size: 3rem; margin-bottom: 15px; }
+        .app-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; }
+        .app-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.4; }
+
+        .card-studio { border-top: 4px solid var(--studio); }
+        .card-talent { border-top: 4px solid var(--talent); }
+        .card-stream { border-top: 4px solid var(--accent); }
+
+        .reset-btn {
+            margin-top: 50px; background: transparent; border: 1px solid #ff4444; color: #ff4444;
+            padding: 10px 20px; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: bold;
+        }
+        .reset-btn:hover { background: #ff4444; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title">Media Tycoon</div>
+        <div class="subtitle">Ecosystem Dashboard</div>
+    </div>
+
+    <div class="stats-bar" id="master-stats">
+        <div class="stat"><div class="stat-label">Week</div><div class="stat-value" id="s-week">1</div></div>
+        <div class="stat"><div class="stat-label">Studio Budget</div><div class="stat-value" id="s-budget" style="color: #00c97a;">$50,000,000</div></div>
+        <div class="stat"><div class="stat-label">Platform Subs</div><div class="stat-value" id="s-subs" style="color: var(--accent);">0</div></div>
+    </div>
+
+    <div class="nav-grid">
+        <a href="studio.html" class="app-card card-studio">
+            <div class="app-icon">🎬</div>
+            <div class="app-title">Studio Hub</div>
+            <div class="app-desc">Create movies, manage production budgets, and build your cinematic universe.</div>
+        </a>
+
+        <a href="talent.html" class="app-card card-talent">
+            <div class="app-icon">📋</div>
+            <div class="app-title">Talent Manager</div>
+            <div class="app-desc">Hire actors, directors, and writers to expand your industry database.</div>
+        </a>
+
+        <a href="netflix.html" class="app-card card-stream">
+            <div class="app-icon">📺</div>
+            <div class="app-title">StreamVault</div>
+            <div class="app-desc">Publish your finished projects, gain subscribers, and collect weekly revenue.</div>
+        </a>
+    </div>
+
+    <button class="reset-btn" onclick="hardReset()">⚠️ Format Save File & Start Fresh</button>
+
+<script>
+    const SAVE_KEY = 'studioHubSave_v2';
+
+    function initMaster() {
+        let raw = localStorage.getItem(SAVE_KEY);
+        let save;
+        
+        // If no save exists, create the perfect master template
+        if (!raw) {
+            save = {
+                state: { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] },
+                platform: { subscribers: 0, subPrice: 15, rows: ['New this week', 'Trending Now'], publishedCatalog: [] },
+                undoStack: []
+            };
+            localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+        } else {
+            save = JSON.parse(raw);
+            // Patch older saves just in case
+            if(!save.state) save.state = { week: 1, budget: 50000000 };
+            if(!save.state.budget) save.state.budget = 50000000; 
+            if(!save.platform) save.platform = { subscribers: 0 };
+        }
+
+        document.getElementById('s-week').innerText = save.state.week || 1;
+        document.getElementById('s-budget').innerText = '$' + (save.state.budget || 0).toLocaleString();
+        document.getElementById('s-subs').innerText = (save.platform.subscribers || 0).toLocaleString();
+    }
+
+    function hardReset() {
+        if(confirm("Are you 100% sure? This deletes your studio, your talent, and your streaming platform.")){
+            localStorage.removeItem(SAVE_KEY);
+            initMaster();
+            alert("Save file formatted. Ready for a new game.");
+        }
+    }
+
+    window.onload = initMaster;
+</script>
+</body>
+</html>
