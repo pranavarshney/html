@@ -771,7 +771,7 @@ function updatePrice(val) {
     else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
     recalcSubscribers();
     renderAdmin();
-    persistSave();
+    persistSave(false);
 }
 
 function collectRevenue() {
@@ -799,7 +799,7 @@ function collectRevenue() {
             (studioSave.state.talent || []).forEach(t => { if ((fp.involvedTalent || []).includes(t.id)) { t.status = 'Idle'; t.project = ''; } });
         }
     }
-    persistSave(); renderAll();
+    persistSave(true); renderAll();
     toast(`💰 Collected $${income.toLocaleString()}!`, 'success');
 }
 
@@ -852,7 +852,7 @@ function confirmPublish() {
     }
 
     platform.publishedCatalog.unshift(project);
-    recalcSubscribers(); persistSave(); renderAll();
+    recalcSubscribers(); persistSave(true); renderAll();
     
     document.getElementById('poster-url').value = '';
     document.getElementById('feature-flag').checked = false;
@@ -875,13 +875,13 @@ function unpublishProject(title) {
     const idx = platform.publishedCatalog.findIndex(p => p.title === title);
     const project = platform.publishedCatalog.splice(idx, 1)[0];
     studioSave.state.finishedCatalog.unshift(project);
-    recalcSubscribers(); persistSave(); renderAll();
+    recalcSubscribers(); persistSave(true); renderAll();
     toast(`"${title}" moved back to vault.`);
 }
 
 function createRow() {
     const name = document.getElementById('new-row-input').value.trim();
-    if (name && !platform.rows.includes(name)) { platform.rows.push(name); persistSave(); renderAll(); }
+    if (name && !platform.rows.includes(name)) { platform.rows.push(name); persistSave(false); renderAll(); }
     document.getElementById('new-row-input').value = '';
 }
 
@@ -893,7 +893,7 @@ function deleteRow(name) {
     }
     platform.publishedCatalog.filter(p => p.row === name).forEach(p => p.row = platform.rows.filter(r => r !== name)[0]);
     platform.rows = platform.rows.filter(r => r !== name);
-    persistSave(); renderAll();
+    persistSave(false); renderAll();
 }
 
 function renderViewer() {

@@ -377,6 +377,11 @@
             </div>
 
             <div class="form-group">
+                <label class="field-label">Base Production Unit ($20k–$1M)</label>
+                <input type="number" id="proj-base-unit" value="200000" min="20000" max="1000000" step="10000" oninput="updateCostPreview()">
+            </div>
+
+            <div class="form-group">
                 <label class="field-label">Base Production Unit ($50k–$1M)</label>
                 <input type="number" id="proj-base-unit" value="200000" min="50000" max="1000000" step="10000" oninput="updateCostPreview()">
             </div>
@@ -609,6 +614,44 @@ function recalcPlatformSubscribers(platformData) {
     return total;
 }
 
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
+}
+
+function normalizePlatform(rawPlatform = {}) {
+    return {
+        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
+        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
+        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
+        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
+    };
+}
+
+function recalcPlatformSubscribers(platformData) {
+    let total = 0;
+    (platformData.publishedCatalog || []).forEach(p => {
+        const vis = parseInt(p.stats?.vis) || 1;
+        const story = parseInt(p.stats?.story) || 1;
+        const vfx = parseInt(p.stats?.vfx) || 1;
+        let base = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (p.episodes||1) * 0.05));
+        const age = p.weeksOnPlatform || 0;
+        const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
+        base = Math.floor(base * freshnessFactor);
+        if (p.featured) base = Math.floor(base * 1.2);
+        const priceFactor = Math.max(0.5, 1 - ((platformData.subPrice - 15) * 0.03));
+        base = Math.floor(base * priceFactor);
+        total += base;
+    });
+    platformData.subscribers = total;
+    return total;
+}
+
 function init() {
     loadGame();
     updateUI();
@@ -752,7 +795,7 @@ function computeCost() {
     if (totalMin < 1) totalMin = 1;
     const totalHours = (totalMin / 60) * eps;
     const baseUnitInput = parseInt(document.getElementById('proj-base-unit')?.value);
-    const k = Math.min(1000000, Math.max(50000, Number.isFinite(baseUnitInput) ? baseUnitInput : 200000));
+    const k = Math.min(1000000, Math.max(20000, Number.isFinite(baseUnitInput) ? baseUnitInput : 200000));
     const paceVal = parseInt(document.getElementById('proj-pace')?.value) || 3;
     const costMults = {1: 0.5, 2: 0.75, 3: 1.0, 4: 1.25, 5: 2.0};
     const paceCostMult = costMults[paceVal];
@@ -899,6 +942,7 @@ function startProduction() {
     document.getElementById('cast-container').innerHTML = '';
     addCastRow();
     updateUI();
+    saveGame(null, true);
 }
 
 function advanceWeek() {
@@ -926,7 +970,7 @@ function advanceWeek() {
             finished.push(fp);
             state.finishedCatalog.unshift(fp);
             state.talent.forEach(t => {
-                if (fp.involvedTalent.includes(t.id)) { t.status = 'Idle'; t.project = ''; }
+                if (fp.involvedTalent.includes(t.id) && t.role !== 'Writer') { t.status = 'Idle'; t.project = ''; }
             });
         }
     }
@@ -1082,6 +1126,29 @@ function toast(msg, type = '') {
     setTimeout(() => el.remove(), 4200);
 }
 
+function saveGame(platformData = null, silent = false) {
+    let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
+    state = normalizeState(state);
+    // Always persist current Studio state as source-of-truth for studio progression.
+    if (platformData) masterSave.platform = normalizePlatform(platformData);
+    masterSave.state = state;
+    masterSave.undoStack = undoStack;
+    localStorage.setItem('studioHubSave_v2', JSON.stringify(masterSave));
+    if (!silent) toast('💾 Game saved.', 'success');
+}
+
+function loadGame() {
+    const saved = localStorage.getItem('studioHubSave_v2');
+    if (saved) {
+        try {
+            let masterSave = JSON.parse(saved);
+            if (masterSave.state) {
+                state = normalizeState(masterSave.state);
+            }
+            undoStack = masterSave.undoStack || [];
+        } catch(e) { console.warn('Save corrupted, starting fresh.'); }
+    }
+}
 function saveGame(platformData = null) {
     let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
     state = normalizeState(state);
@@ -1130,4 +1197,5 @@ function resetGame() {
 window.onload = init;
 </script>
 </body>
+</html>
 </html>
