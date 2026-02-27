@@ -469,6 +469,16 @@
 let savedData = { state: { talent: [] }, undoStack: [] };
 let currentFilter = 'all';
 
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
+}
+
 const starterPack = [
     { name: "Joe F.",              role: "Director", salary: 190000 },
     { name: "Chris N.",            role: "Director", salary: 2500000 },
@@ -506,15 +516,15 @@ function loadGame() {
         try {
             let masterSave = JSON.parse(saved);
             savedData = masterSave;
-            if (!savedData.state) savedData.state = {};
-            if (!savedData.state.talent) savedData.state.talent = [];
+            savedData.state = normalizeState(savedData.state);
         } catch(e) { console.warn("Could not parse save data. Creating new."); }
     }
 }
 
 function saveGame() {
     let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || { state: {} };
-    if (!masterSave.state) masterSave.state = {};
+    masterSave.state = normalizeState(masterSave.state);
+    savedData.state = normalizeState(savedData.state);
     masterSave.state.talent = savedData.state.talent;
     localStorage.setItem('studioHubSave_v2', JSON.stringify(masterSave));
 }
