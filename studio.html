@@ -899,7 +899,6 @@ function startProduction() {
     document.getElementById('cast-container').innerHTML = '';
     addCastRow();
     updateUI();
-    saveGame(null, true);
 }
 
 function advanceWeek() {
@@ -927,7 +926,7 @@ function advanceWeek() {
             finished.push(fp);
             state.finishedCatalog.unshift(fp);
             state.talent.forEach(t => {
-                if (fp.involvedTalent.includes(t.id) && t.role !== 'Writer') { t.status = 'Idle'; t.project = ''; }
+                if (fp.involvedTalent.includes(t.id)) { t.status = 'Idle'; t.project = ''; }
             });
         }
     }
@@ -1083,7 +1082,7 @@ function toast(msg, type = '') {
     setTimeout(() => el.remove(), 4200);
 }
 
-function saveGame(platformData = null, silent = false) {
+function saveGame(platformData = null) {
     let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
     state = normalizeState(state);
     // FIX: If Netflix has collected revenue since Studio last loaded, 
@@ -1105,7 +1104,7 @@ function saveGame(platformData = null, silent = false) {
     masterSave.state = state;
     masterSave.undoStack = undoStack;
     localStorage.setItem('studioHubSave_v2', JSON.stringify(masterSave));
-    if (!silent) toast('💾 Game saved.', 'success');
+    toast('💾 Game saved.', 'success');
 }
 
 function loadGame() {
