@@ -105,6 +105,7 @@
     function initMaster() {
         let raw = localStorage.getItem(SAVE_KEY);
         let save;
+        let patched = false;
         
         // If no save exists, create the perfect master template
         if (!raw) {
@@ -119,7 +120,14 @@
             // Patch older saves just in case
             if(!save.state) save.state = { week: 1, budget: 50000000 };
             if(!save.state.budget) save.state.budget = 50000000; 
-            if(!save.platform) save.platform = { subscribers: 0 };
+            if(!save.platform) {
+                save.platform = { subscribers: 0, subPrice: 15, rows: ['New this week', 'Trending Now'], publishedCatalog: [] };
+                patched = true;
+            }
+            if(!Array.isArray(save.platform.publishedCatalog)) { save.platform.publishedCatalog = []; patched = true; }
+            if(!Array.isArray(save.platform.rows)) { save.platform.rows = ['New this week', 'Trending Now']; patched = true; }
+            if(!save.platform.subPrice) { save.platform.subPrice = 15; patched = true; }
+            if (patched) localStorage.setItem(SAVE_KEY, JSON.stringify(save));
         }
 
         document.getElementById('s-week').innerText = save.state.week || 1;
