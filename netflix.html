@@ -690,13 +690,21 @@ function loadGame() {
     studioSave.platform = platform;
 }
 
-function persistSave(saveState = false) {
+function persistSave() {
     let masterSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
 
-    masterSave.platform = platform;
-    if (saveState || !masterSave.state) {
-        masterSave.state = studioSave.state;
+    // Never let an older tab overwrite newer budget/week progress.
+    if (masterSave.state) {
+        const latestState = normalizeState(masterSave.state);
+        studioSave.state.budget = Math.max(studioSave.state.budget || 0, latestState.budget);
+        studioSave.state.week = Math.max(studioSave.state.week || 1, latestState.week);
+        if (latestState.talent.length > studioSave.state.talent.length) studioSave.state.talent = latestState.talent;
+        if (latestState.activeProjects.length > studioSave.state.activeProjects.length) studioSave.state.activeProjects = latestState.activeProjects;
+        if (latestState.finishedCatalog.length > studioSave.state.finishedCatalog.length) studioSave.state.finishedCatalog = latestState.finishedCatalog;
     }
+
+    masterSave.platform = platform;
+    masterSave.state = studioSave.state;
     localStorage.setItem(SAVE_KEY, JSON.stringify(masterSave));
 }
 
