@@ -377,6 +377,11 @@
             </div>
 
             <div class="form-group">
+                <label class="field-label">Base Production Unit ($20k–$1M)</label>
+                <input type="number" id="proj-base-unit" value="200000" min="20000" max="1000000" step="10000" oninput="updateCostPreview()">
+            </div>
+
+            <div class="form-group">
                 <label class="field-label">Title</label>
                 <input type="text" id="proj-title" placeholder="e.g., The Final Arc">
             </div>
@@ -566,6 +571,44 @@ let state = {
 
 let undoStack = [];
 
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
+}
+
+function normalizePlatform(rawPlatform = {}) {
+    return {
+        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
+        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
+        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
+        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
+    };
+}
+
+function recalcPlatformSubscribers(platformData) {
+    let total = 0;
+    (platformData.publishedCatalog || []).forEach(p => {
+        const vis = parseInt(p.stats?.vis) || 1;
+        const story = parseInt(p.stats?.story) || 1;
+        const vfx = parseInt(p.stats?.vfx) || 1;
+        let base = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (p.episodes||1) * 0.05));
+        const age = p.weeksOnPlatform || 0;
+        const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
+        base = Math.floor(base * freshnessFactor);
+        if (p.featured) base = Math.floor(base * 1.2);
+        const priceFactor = Math.max(0.5, 1 - ((platformData.subPrice - 15) * 0.03));
+        base = Math.floor(base * priceFactor);
+        total += base;
+    });
+    platformData.subscribers = total;
+    return total;
+}
+
 function init() {
     loadGame();
     updateUI();
@@ -593,6 +636,7 @@ function updateUI() {
     if (nearFinish) btn.classList.add('pulse'); else btn.classList.remove('pulse');
 
     populateDropdowns();
+    refreshCastRows();
     renderRoster();
     renderActiveProjects();
     renderCatalog();
@@ -680,6 +724,23 @@ function addCastRow() {
     container.appendChild(row);
 }
 
+function refreshCastRows() {
+    const idleActors = state.talent.filter(t => t.role === 'Actor' && t.status === 'Idle');
+    document.querySelectorAll('.cast-row .actor-select').forEach(sel => {
+        const prev = sel.value;
+        let options = '<option value="">— Select Actor —</option>';
+        idleActors.forEach(a => {
+            options += `<option value="${a.id}" ${String(a.id) === prev ? 'selected' : ''}>${a.name} ($${a.salary.toLocaleString()})</option>`;
+        });
+        // Keep currently selected actor visible in case they are no longer idle.
+        if (prev && !idleActors.some(a => String(a.id) === prev)) {
+            const actor = state.talent.find(t => String(t.id) === prev);
+            if (actor) options += `<option value="${actor.id}" selected>${actor.name} ($${actor.salary.toLocaleString()})</option>`;
+        }
+        sel.innerHTML = options;
+    });
+}
+
 function populateDropdowns() {
     const dirDrop = document.getElementById('proj-director');
     const writDrop = document.getElementById('proj-writer');
@@ -708,7 +769,8 @@ function computeCost() {
     let totalMin = hr * 60 + min;
     if (totalMin < 1) totalMin = 1;
     const totalHours = (totalMin / 60) * eps;
-    const k = (type === 'Anime') ? 25000 : 200000;
+    const baseUnitInput = parseInt(document.getElementById('proj-base-unit')?.value);
+    const k = Math.min(1000000, Math.max(20000, Number.isFinite(baseUnitInput) ? baseUnitInput : 200000));
     const paceVal = parseInt(document.getElementById('proj-pace')?.value) || 3;
     const costMults = {1: 0.5, 2: 0.75, 3: 1.0, 4: 1.25, 5: 2.0};
     const paceCostMult = costMults[paceVal];
@@ -832,7 +894,12 @@ function startProduction() {
         const actorId = row.querySelector('.actor-select').value;
         if (actorId) involvedIds.push(parseInt(actorId));
     });
-    state.talent.forEach(t => { if (involvedIds.includes(t.id)) { t.status = 'Working'; t.project = title; } });
+    state.talent.forEach(t => {
+        if (involvedIds.includes(t.id)) {
+            t.status = 'Working';
+            t.project = title;
+        }
+    });
     const type  = document.getElementById('proj-type').value;
     const genre = document.getElementById('proj-genre').value;
     const paceVal = parseInt(document.getElementById('proj-pace').value) || 3;
@@ -850,11 +917,26 @@ function startProduction() {
     document.getElementById('cast-container').innerHTML = '';
     addCastRow();
     updateUI();
+    saveGame(null, true);
 }
 
 function advanceWeek() {
+    const masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
+    state = normalizeState(masterSave.state || state);
     saveStateForUndo();
+
+    const platformData = normalizePlatform(masterSave.platform);
+    const subscribers = recalcPlatformSubscribers(platformData);
+    const streamIncome = subscribers * platformData.subPrice;
+
+    state.budget += streamIncome;
+
     state.week++;
+
+    platformData.publishedCatalog.forEach(p => {
+        p.weeksOnPlatform = (p.weeksOnPlatform || 0) + 1;
+    });
+
     const finished = [];
     for (let i = state.activeProjects.length - 1; i >= 0; i--) {
         state.activeProjects[i].weeksRemaining--;
@@ -870,8 +952,9 @@ function advanceWeek() {
     }
     if (finished.length === 1) toast(`✅ "${finished[0].title}" finished! Added to catalog.`, 'success');
     else if (finished.length > 1) toast(`✅ ${finished.length} projects finished: ${finished.map(f => `"${f.title}"`).join(', ')}`, 'success');
+    if (streamIncome > 0) toast(`💰 StreamVault payout: +$${streamIncome.toLocaleString()}`, 'success');
     updateUI();
-    saveGame();
+    saveGame(platformData);
 }
 
 function saveStateForUndo() {
@@ -1019,21 +1102,15 @@ function toast(msg, type = '') {
     setTimeout(() => el.remove(), 4200);
 }
 
-function saveGame() {
+function saveGame(platformData = null, silent = false) {
     let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
-    // FIX: If Netflix has collected revenue since Studio last loaded, 
-    // localStorage will have a higher budget/week than our in-memory state.
-    // Preserve whichever budget is higher so Netflix earnings are never overwritten.
-    if (masterSave.state) {
-        const latestBudget = masterSave.state.budget || 0;
-        const latestWeek = masterSave.state.week || 1;
-        if (latestBudget > state.budget) state.budget = latestBudget;
-        if (latestWeek > state.week) state.week = latestWeek;
-    }
+    state = normalizeState(state);
+    // Always persist current Studio state as source-of-truth for studio progression.
+    if (platformData) masterSave.platform = normalizePlatform(platformData);
     masterSave.state = state;
     masterSave.undoStack = undoStack;
     localStorage.setItem('studioHubSave_v2', JSON.stringify(masterSave));
-    toast('💾 Game saved.', 'success');
+    if (!silent) toast('💾 Game saved.', 'success');
 }
 
 function loadGame() {
@@ -1042,9 +1119,7 @@ function loadGame() {
         try {
             let masterSave = JSON.parse(saved);
             if (masterSave.state) {
-                if (!masterSave.state.budget) masterSave.state.budget = 50000000;
-                if (!masterSave.state.week) masterSave.state.week = 1;
-                state = masterSave.state;
+                state = normalizeState(masterSave.state);
             }
             undoStack = masterSave.undoStack || [];
         } catch(e) { console.warn('Save corrupted, starting fresh.'); }
