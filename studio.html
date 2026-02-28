@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Hub - Creator</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>StreamVault — Watch Now</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0d0d0f;
-            --surface: #161618;
-            --surface2: #1e1e22;
-            --surface3: #26262c;
-            --border: #2e2e36;
-            --text: #f0f0f2;
-            --muted: #7a7a8c;
-            --accent: #e8003d;
-            --accent-dim: rgba(232,0,61,0.15);
-            --accent-hover: #ff1a52;
-            --green: #00c97a;
-            --orange: #ff8c00;
-            --blue: #4da6ff;
-            --radius: 6px;
+            --bg: #141414;
+            --nav-bg: #000000;
+            --text: #e5e5e5;
+            --accent: #E50914;
+            --accent-glow: rgba(229,9,20,0.3);
+            --hover: #ffffff;
+            --admin-bg: #0f0f0f;
+            --admin-panel: #1a1a1a;
+            --admin-panel-2: #222228;
+            --border: #2a2a2a;
+            --border-light: #383838;
+            --green: #46d369;
+            --gold: #ffd700;
+            --sidebar-w: 80px;
+            --muted: #888;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,548 +30,639 @@
             font-family: 'DM Sans', sans-serif;
             background: var(--bg);
             color: var(--text);
-            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* ── TOP BAR ── */
-        .top-bar {
-            position: fixed; top: 0; left: 0; right: 0;
-            background: rgba(13,13,15,0.97);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 0 20px;
-            height: 56px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 200;
-            gap: 12px;
-        }
-
-        .top-bar-left { display: flex; align-items: center; gap: 16px; }
-        .top-bar-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--accent); white-space: nowrap; }
-        .back-link {
-            font-size: 12px; color: var(--muted); text-decoration: none;
-            display: flex; align-items: center; gap: 4px;
-            background: var(--surface2); border: 1px solid var(--border);
-            padding: 4px 10px; border-radius: var(--radius);
-            transition: color 0.15s, border-color 0.15s;
-        }
-        .back-link:hover { color: var(--text); border-color: #444; }
-
-        .top-bar-stats { display: flex; gap: 20px; align-items: center; flex: 1; justify-content: center; }
-        .stat-chip { display: flex; flex-direction: column; align-items: center; }
-        .stat-chip .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-        .stat-chip .value { font-size: 15px; font-weight: 700; }
-        .stat-chip .value.budget { color: var(--green); }
-        .stat-chip .value.week { color: var(--blue); }
-        .stat-chip .value.subs { color: var(--accent); }
-
-        .top-bar-actions { display: flex; gap: 8px; align-items: center; }
-
-        /* Next Week — dominant */
-        .btn-next-week {
-            background: var(--accent); color: #fff;
-            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
-            border: none; border-radius: var(--radius); cursor: pointer;
-            padding: 9px 20px; transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
-            box-shadow: 0 0 0 0 rgba(232,0,61,0);
-            display: flex; align-items: center; gap: 6px;
-        }
-        .btn-next-week:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,0,61,0.4); }
-        .btn-next-week.pulse { animation: nextPulse 2s infinite; }
-        @keyframes nextPulse {
-            0%,100% { box-shadow: 0 0 0 0 rgba(232,0,61,0.5); }
-            50% { box-shadow: 0 0 0 6px rgba(232,0,61,0); }
-        }
-
-        .btn-util {
-            font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
-            background: var(--surface3); color: var(--muted); border: 1px solid var(--border);
-            border-radius: var(--radius); cursor: pointer; padding: 6px 12px;
-            transition: background 0.15s, color 0.15s;
-        }
-        .btn-util:hover { background: #333; color: var(--text); }
-
-        /* ── LAYOUT ── */
-        .app {
-            margin-top: 56px;
-            display: grid;
-            grid-template-columns: 1fr 340px 280px;
-            grid-template-rows: auto 1fr;
-            gap: 16px;
-            padding: 16px;
-            min-height: calc(100vh - 56px);
-        }
-
-        .panel {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px;
-        }
-
-        .panel-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 18px;
-            letter-spacing: 2px;
-            color: var(--text);
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-            margin-bottom: 16px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .panel-title-count {
-            font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
-            background: var(--surface3); color: var(--muted);
-            padding: 2px 8px; border-radius: 10px; letter-spacing: 0;
-        }
-
-        .form-group { margin-bottom: 14px; }
-        label.field-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 5px; }
-
-        input[type="text"], input[type="number"], select {
-            width: 100%; padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border);
-            border-radius: var(--radius); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; transition: border-color 0.15s;
-        }
-        input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: none; border-color: var(--accent); }
-        select option { background: var(--surface2); }
-        .input-row { display: flex; gap: 8px; }
-        .input-row > * { flex: 1; }
-
-        /* ── QUALITY SLIDERS ── */
-        .slider-block { margin-bottom: 12px; }
-        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .slider-header .field-label { margin: 0; }
-        .slider-right { display: flex; align-items: center; gap: 8px; }
-        .slider-value { font-size: 14px; font-weight: 700; color: var(--accent); min-width: 20px; text-align: right; }
-        .slider-tier {
-            font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
-            text-transform: uppercase; letter-spacing: 0.5px; min-width: 72px; text-align: center;
-            transition: background 0.2s, color 0.2s;
-        }
-        .tier-budget  { background: rgba(122,122,140,0.15); color: var(--muted); }
-        .tier-standard{ background: rgba(77,166,255,0.15); color: var(--blue); }
-        .tier-premium { background: rgba(255,140,0,0.15);  color: var(--orange); }
-        .tier-blockbuster { background: rgba(232,0,61,0.2); color: var(--accent); }
-
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: var(--surface3); border-radius: 2px; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; transition: transform 0.1s; }
-        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
-
-        /* ── PACE ── */
-        .pace-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); }
-        .pace-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .pace-label-text { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); }
-        .pace-val { font-size: 11px; font-weight: 600; color: var(--muted); }
-        .crunch-warning {
-            display: none; align-items: center; gap: 6px; margin-top: 8px;
-            background: rgba(232,0,61,0.1); border: 1px solid rgba(232,0,61,0.25);
-            border-radius: var(--radius); padding: 7px 10px;
-            font-size: 12px; color: #ff6666; font-weight: 600;
-        }
-        .crunch-warning.show { display: flex; }
-
-        /* ── CAST ── */
-        .cast-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
-        .cast-row select { flex: 2; }
-        .cast-row .role-sel { flex: 1; }
-        .cast-row .btn-icon { flex: none; width: 30px; height: 30px; padding: 0; border-radius: 4px; background: var(--surface3); color: var(--muted); font-size: 14px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
-        .cast-row .btn-icon:hover { background: var(--accent); color: #fff; }
-
-        /* ── COST BOX ── */
-        .cost-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-top: 16px; }
-        .cost-box-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
-        .cost-line { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 8px; color: var(--muted); gap: 8px; }
-        .cost-line-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-        .cost-line-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .cost-bar-track { flex: 1; height: 3px; background: var(--surface3); border-radius: 2px; overflow: hidden; min-width: 40px; }
-        .cost-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.3s; }
-        .cost-line-val { color: var(--text); font-weight: 500; white-space: nowrap; }
-        .cost-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 8px; }
-        .cost-total .total-val { color: var(--accent); }
-        .cost-total .total-val.over-budget { color: #ff4444; }
-        .cost-remaining { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); }
-        .cost-remaining .rem-val { font-weight: 600; }
-        .cost-remaining .rem-val.low { color: #ffb400; }
-        .cost-remaining .rem-val.danger { color: #ff4444; }
-        .cost-remaining .rem-val.good { color: var(--green); }
-
-        /* IMDb preview */
-        .imdb-preview {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-top: 10px; padding: 10px; background: var(--surface3);
-            border-radius: var(--radius); border: 1px solid var(--border);
-        }
-        .imdb-preview-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
-        .imdb-preview-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; }
-        .imdb-badge-mini { background: #f5c518; color: black; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 900; margin-right: 6px; }
-        .imdb-sub-bump { font-size: 11px; color: var(--green); font-weight: 600; }
-
-        .warning-tag { display: inline-block; background: rgba(255,68,68,0.15); color: #ff6666; font-size: 11px; padding: 2px 7px; border-radius: 3px; margin-left: 8px; }
-        .duplicate-warning { font-size: 11px; color: #ff8888; margin-top: 3px; }
-
-        button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; border: none; border-radius: var(--radius); cursor: pointer; padding: 8px 14px; transition: all 0.15s; }
-        .btn-primary { background: var(--accent); color: #fff; }
-        .btn-primary:hover { background: var(--accent-hover); }
-        .btn-primary:disabled { background: #444; color: #777; cursor: not-allowed; }
-        .btn-secondary { background: var(--surface3); color: var(--text); border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #333; }
-        .btn-sm { padding: 5px 10px; font-size: 12px; }
-
-        .form-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
-        .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-        .checkbox-row input[type="checkbox"] { width: auto; accent-color: var(--accent); }
-        .checkbox-row label { margin: 0; font-size: 13px; color: var(--muted); cursor: pointer; }
-        .hidden { display: none !important; }
-
-        /* ── PROJECT CARDS ── */
-        .project-card {
-            background: var(--surface2); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 12px; margin-bottom: 10px;
-            position: relative; overflow: hidden; transition: border-color 0.3s;
-        }
-        .project-card::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px; background: var(--accent); }
-        .project-card.near-finish { border-color: #ffb400; animation: nearFinish 1.8s ease-in-out infinite; }
-        .project-card.near-finish::before { background: #ffb400; }
-        @keyframes nearFinish {
-            0%,100% { box-shadow: 0 0 0 0 rgba(255,180,0,0); }
-            50% { box-shadow: 0 0 12px 2px rgba(255,180,0,0.2); }
-        }
-        .project-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-        .project-card-title { font-weight: 600; font-size: 14px; }
-        .pace-badge {
-            font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
-            text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
-        }
-        .pace-crunch { background: rgba(232,0,61,0.15); color: var(--accent); }
-        .pace-relaxed { background: rgba(77,166,255,0.1); color: var(--blue); }
-        .project-card-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
-        .project-talent-row { font-size: 11px; color: #5a5a6e; margin-bottom: 8px; line-height: 1.5; }
-        .weeks-bar { height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
-        .weeks-bar-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
-        .project-card.near-finish .weeks-bar-fill { background: #ffb400; }
-        .weeks-label { font-size: 11px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between; }
-        .weeks-label .near-text { color: #ffb400; font-weight: 700; }
-
-        /* ── ROSTER ── */
-        .roster-summary {
-            background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-            padding: 10px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
-        }
-        .roster-summary-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
-        .roster-summary-val { font-size: 15px; font-weight: 700; color: var(--orange); }
-
-        .roster-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; }
-        .roster-name { font-size: 13px; font-weight: 600; }
-        .roster-role { font-size: 11px; color: var(--muted); }
-        .roster-salary { font-size: 11px; color: var(--muted); margin-top: 2px; }
-        .roster-project { font-size: 11px; color: var(--orange); margin-top: 2px; }
-        .roster-power { font-size: 11px; color: var(--blue); margin-top: 2px; font-weight: 600; }
-        .badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .badge-idle { background: rgba(0,201,122,0.15); color: var(--green); }
-        .badge-working { background: rgba(255,140,0,0.15); color: var(--orange); }
-
-        /* ── CATALOG ── */
-        .catalog-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px; }
-        .catalog-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-        .catalog-card-title { font-size: 13px; font-weight: 600; }
-        .catalog-card-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
-        .catalog-card-footer { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
-        .catalog-stars { font-size: 11px; color: #ffd700; }
-        .catalog-week { font-size: 10px; color: var(--muted); }
-        .published-badge { font-size: 10px; font-weight: 700; background: rgba(255,140,0,0.15); color: var(--orange); padding: 2px 6px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
-        .vault-badge { font-size: 10px; font-weight: 700; background: rgba(0,201,122,0.1); color: var(--green); padding: 2px 6px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
-
-        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-        .toast { background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; max-width: 320px; animation: toast-in 0.2s ease, toast-out 0.3s ease 3.7s forwards; pointer-events: none; }
-        .toast.toast-success { border-left-color: var(--green); }
-        .toast.toast-warn { border-left-color: var(--orange); }
-        @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes toast-out { from { opacity: 1; } to { opacity: 0; } }
-
-        .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 14px 0 8px; }
-        ::-webkit-scrollbar { width: 5px; }
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
-        .col-side { display: flex; flex-direction: column; gap: 16px; max-height: calc(100vh - 88px); }
-        .col-side .panel { overflow-y: auto; flex: 1; min-height: 0; }
-        .col-main { overflow-y: auto; max-height: calc(100vh - 88px); }
-        .empty-state { text-align: center; color: var(--muted); font-size: 13px; padding: 20px 0; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-w);
+            background: linear-gradient(to bottom, #000, #0a0a0a);
+            border-right: 1px solid #1a1a1a;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 30px 0;
+            z-index: 1000;
+        }
+        .sidebar-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            color: var(--accent);
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+        }
+        .nav-btn {
+            width: 100%; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            color: #555;
+            font-size: 20px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: color 0.2s, transform 0.15s, background 0.2s;
+            position: relative;
+            border-left: 3px solid transparent;
+        }
+        .nav-btn:hover { color: var(--hover); transform: scale(1.1); background: rgba(255,255,255,0.04); }
+        .nav-btn.active { color: var(--hover); border-left-color: var(--accent); background: rgba(229,9,20,0.08); }
+        .nav-tooltip {
+            position: absolute; left: 90px; background: #1a1a1a; color: white;
+            padding: 5px 10px; border-radius: 4px; font-size: 12px; white-space: nowrap;
+            opacity: 0; pointer-events: none; transition: opacity 0.15s;
+            border: 1px solid #333;
+        }
+        .nav-btn:hover .nav-tooltip { opacity: 1; }
+        .nav-spacer { flex: 1; }
+
+        /* ── LAYOUT SHELLS ── */
+        .shell { margin-left: var(--sidebar-w); min-height: 100vh; }
+        .shell.hidden { display: none; }
+
+        /* ── HERO ── */
+        .hero {
+            position: relative; height: 85vh; background-size: cover;
+            background-position: center top; display: flex; align-items: center; padding: 0 4%;
+            transition: background-image 0.5s;
+        }
+        .hero::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to right, rgba(14,14,14,0.97) 0%, rgba(14,14,14,0.5) 50%, transparent 100%),
+                        linear-gradient(to top, rgba(14,14,14,1) 0%, rgba(14,14,14,0) 30%);
+            z-index: 1;
+        }
+        .hero-content { position: relative; z-index: 2; max-width: 600px; margin-top: 80px; }
+        .hero-n-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(229,9,20,0.15); border: 1px solid rgba(229,9,20,0.3);
+            padding: 4px 12px; border-radius: 20px;
+            color: var(--text); font-weight: 600; letter-spacing: 3px; font-size: 11px;
+            text-transform: uppercase; margin-bottom: 16px;
+        }
+        .hero-n-badge span { color: var(--accent); font-size: 18px; font-weight: 900; }
+        .hero-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(4rem, 8vw, 7rem); line-height: 0.9;
+            color: #fff; margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+        .hero-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .imdb-badge { background: #f5c518; color: black; padding: 3px 8px; border-radius: 3px; font-weight: 900; font-size: 13px; }
+        .hero-type-badge {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;
+        }
+        .freshness-pill {
+            padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .fresh { background: rgba(70,211,105,0.2); color: var(--green); border: 1px solid rgba(70,211,105,0.3); }
+        .aging { background: rgba(255,180,0,0.2); color: #ffb400; border: 1px solid rgba(255,180,0,0.3); }
+        .stale { background: rgba(255,80,80,0.2); color: #ff5050; border: 1px solid rgba(255,80,80,0.3); }
+        .stream-count { font-size: 15px; color: var(--muted); }
+        .stream-count span { color: white; font-weight: 700; }
+        .hero-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .btn-hero { padding: 12px 28px; font-size: 16px; font-weight: 700; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; font-family: inherit; }
+        .btn-play { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(229,9,20,0.4); }
+        .btn-play:hover { background: #ff0a16; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(229,9,20,0.5); }
+        .btn-info { background: rgba(255,255,255,0.15); color: white; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); }
+        .btn-info:hover { background: rgba(255,255,255,0.25); transform: translateY(-1px); }
+
+        /* ── CONTENT ROWS ── */
+        #platform-rows { padding: 0 0 80px; margin-top: -80px; position: relative; z-index: 10; }
+        .row-section { padding: 0 4%; margin-bottom: 40px; }
+        .row-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .row-name { font-size: 1.4rem; font-weight: 700; color: #e5e5e5; }
+        .row-see-all { font-size: 13px; color: var(--accent); font-weight: 600; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+        .row-section:hover .row-see-all { opacity: 1; }
+        .row-track { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+        .row-track::-webkit-scrollbar { display: none; }
+
+        .poster-card {
+            flex: 0 0 185px; height: 278px; border-radius: 6px;
+            background: #222; background-size: cover; background-position: center;
+            cursor: pointer; position: relative; transition: transform 0.3s, box-shadow 0.3s;
+            overflow: hidden;
+        }
+        .poster-card:hover { transform: scale(1.06); box-shadow: 0 12px 30px rgba(0,0,0,0.9); z-index: 5; }
+        .poster-card:hover .card-hover-overlay { opacity: 1; }
+        .poster-fallback {
+            position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 14px; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+        }
+        .fallback-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #fff; line-height: 1; margin-bottom: 4px; }
+        .fallback-genre { font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .freshness-bar-wrap { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.1); }
+        .freshness-bar { height: 100%; transition: width 0.3s; }
+
+        /* Card hover overlay */
+        .card-hover-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 50%);
+            opacity: 0; transition: opacity 0.2s;
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 12px;
+        }
+        .hover-title { font-weight: 700; font-size: 14px; color: white; margin-bottom: 4px; }
+        .hover-imdb { font-size: 11px; color: #f5c518; font-weight: 700; }
+        .hover-play-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -70%);
+            width: 40px; height: 40px; background: rgba(229,9,20,0.9); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; color: white; opacity: 0; transition: opacity 0.2s, transform 0.2s;
+        }
+        .poster-card:hover .hover-play-btn { opacity: 1; transform: translate(-50%, -50%); }
+
+        /* Empty row ghost */
+        .empty-row-ghost {
+            flex: 0 0 185px; height: 278px; border-radius: 6px;
+            background: #1a1a1a; border: 2px dashed #2a2a2a;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #333; font-size: 13px; text-align: center; padding: 20px;
+        }
+        .empty-row-ghost .ghost-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.3; }
+
+        /* ── SEARCH ── */
+        #search-shell { padding: 60px 4%; }
+        .search-wrap { position: relative; margin-bottom: 40px; }
+        .search-input {
+            width: 100%; background: transparent; border: none;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            color: white; font-size: 2.5rem; padding: 10px 0; outline: none; font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-bottom-color: white; }
+        .search-label { position: absolute; top: 10px; right: 0; color: var(--muted); font-size: 14px; }
+        .search-results-wrap { display: flex; flex-wrap: wrap; gap: 10px; }
+        .no-results { color: var(--muted); font-size: 1.2rem; padding: 40px 0; }
+
+        /* ── ADMIN SHELL ── */
+        #admin-shell { padding: 0; background: var(--admin-bg); min-height: 100vh; }
+
+        .admin-topbar {
+            background: #000; border-bottom: 1px solid var(--border);
+            padding: 0 40px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .admin-topbar-title {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 2px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .admin-topbar-title::before {
+            content: ''; display: inline-block; width: 8px; height: 8px;
+            background: var(--accent); border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        .admin-topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+        .admin-body { padding: 30px 40px; }
+
+        /* Stats grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card {
+            background: var(--admin-panel); padding: 20px 22px; border-radius: 8px;
+            border: 1px solid var(--border); position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        }
+        .stat-card.red::before { background: var(--accent); }
+        .stat-card.green::before { background: var(--green); }
+        .stat-card.gold::before { background: var(--gold); }
+        .stat-card.blue::before { background: #4da6ff; }
+        .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+        .stat-val { font-size: 2rem; font-weight: 800; color: white; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
+        .stat-delta {
+            font-size: 12px; font-weight: 600; margin-top: 4px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .delta-up { color: var(--green); }
+        .delta-neutral { color: var(--muted); }
+
+        /* Revenue equation banner */
+        .revenue-equation {
+            background: linear-gradient(135deg, #1a1a1a, #222);
+            border: 1px solid var(--border); border-left: 4px solid var(--green);
+            border-radius: 8px; padding: 18px 24px; margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+        }
+        .eq-part { text-align: center; }
+        .eq-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: white; letter-spacing: 1px; }
+        .eq-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+        .eq-op { font-size: 1.5rem; color: #444; font-weight: 300; }
+        .eq-result { text-align: center; }
+        .eq-result .eq-val { color: var(--green); font-size: 2.2rem; }
+        .eq-result .eq-label { color: var(--green); }
+        .projected-payout {
+            background: rgba(70,211,105,0.05); border: 1px solid rgba(70,211,105,0.15);
+            padding: 10px 20px; border-radius: 6px; text-align: right;
+        }
+        .projected-payout .proj-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .projected-payout .proj-val { font-size: 1.4rem; font-weight: 800; color: var(--green); margin-top: 2px; }
+
+        /* Collect btn */
+        .collect-btn {
+            width: 100%; background: linear-gradient(135deg, #3cbc58, #46d369);
+            color: black; border: none; padding: 16px; font-size: 17px; font-weight: 800;
+            cursor: pointer; margin-bottom: 28px; border-radius: 8px; font-family: inherit;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 20px rgba(70,211,105,0.25);
+        }
+        .collect-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(70,211,105,0.4); }
+        .collect-btn:active { transform: translateY(0); }
+
+        /* Subscription price slider */
+        .price-control {
+            background: var(--admin-panel); border: 1px solid var(--border);
+            border-radius: 8px; padding: 20px 24px; margin-bottom: 24px;
+            display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+        }
+        .price-label-group { flex: 1; min-width: 200px; }
+        .price-title { font-weight: 700; font-size: 15px; color: white; margin-bottom: 4px; }
+        .price-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+        .slider-group { flex: 2; min-width: 250px; display: flex; align-items: center; gap: 16px; }
+        .price-slider {
+            flex: 1; -webkit-appearance: none; appearance: none;
+            height: 4px; background: #333; border-radius: 2px; outline: none; cursor: pointer;
+        }
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 18px; height: 18px; background: var(--accent);
+            border-radius: 50%; cursor: pointer; box-shadow: 0 2px 8px rgba(229,9,20,0.5);
+            transition: transform 0.15s;
+        }
+        .price-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        .price-display {
+            min-width: 60px; text-align: center;
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--accent);
+        }
+        .churn-warning { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+        .churn-warn { background: rgba(255,180,0,0.15); color: #ffb400; }
+        .churn-ok { background: rgba(70,211,105,0.15); color: var(--green); }
+
+        /* Admin two-column */
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+        .admin-card {
+            background: var(--admin-panel); border: 1px solid var(--border);
+            padding: 22px; border-radius: 8px;
+        }
+        .admin-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 18px;
+        }
+        .admin-card-header h3 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: white; }
+        .admin-card-count { font-size: 12px; color: var(--muted); background: #111; padding: 2px 8px; border-radius: 10px; }
+
+        .field-label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; margin-top: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .field-input, .field-select {
+            width: 100%; padding: 10px 12px; background: #111; border: 1px solid #333;
+            color: white; border-radius: 6px; font-family: inherit; font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .field-input:focus, .field-select:focus { outline: none; border-color: var(--accent); }
+        .field-select option { background: #111; }
+
+        .btn-primary {
+            background: var(--accent); color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 14px;
+            font-family: inherit; font-size: 14px; transition: background 0.2s, transform 0.15s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary:hover { background: #ff0a16; transform: translateY(-1px); }
+        .btn-secondary {
+            background: #2a2a2a; color: white; border: 1px solid #444; padding: 10px 20px;
+            border-radius: 6px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn-secondary:hover { background: #333; }
+        .btn-danger {
+            background: transparent; color: #ff5555; border: 1px solid rgba(255,85,85,0.3);
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+            font-weight: 600; transition: background 0.2s;
+        }
+        .btn-danger:hover { background: rgba(255,85,85,0.1); }
+
+        /* List items */
+        .vault-item, .published-item, .row-item {
+            background: #111; padding: 12px 14px; margin-bottom: 8px; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #1e1e1e; transition: border-color 0.2s;
+        }
+        .vault-item:hover, .published-item:hover { border-color: #333; }
+        .item-title { font-weight: 600; font-size: 14px; color: white; margin-bottom: 2px; }
+        .item-meta { font-size: 11px; color: var(--muted); }
+        .item-freshness { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+        .item-fresh-bar { width: 60px; height: 3px; background: #222; border-radius: 2px; overflow: hidden; }
+        .item-fresh-fill { height: 100%; border-radius: 2px; }
+
+        /* Feature toggle */
+        .feature-toggle {
+            display: flex; align-items: center; gap: 8px; margin-top: 10px;
+            font-size: 12px; color: var(--muted); cursor: pointer;
+        }
+        .feature-toggle input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center; padding: 30px 20px; color: var(--muted);
+        }
+        .empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
+        .empty-state p { font-size: 13px; line-height: 1.5; }
+
+        /* Publish Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+            padding: 32px; max-width: 500px; width: 90%; transform: translateY(20px);
+            transition: transform 0.25s; position: relative;
+        }
+        .modal-overlay.open .modal { transform: translateY(0); }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px;
+            background: #333; border: none; color: white; width: 28px; height: 28px;
+            border-radius: 50%; cursor: pointer; font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: white; margin-bottom: 6px; }
+        .modal-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+        .modal-proj-info {
+            background: #111; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px;
+            border: 1px solid #2a2a2a;
+        }
+        .proj-stats-row { display: flex; gap: 16px; margin-top: 8px; }
+        .proj-stat { text-align: center; }
+        .proj-stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: white; }
+        .proj-stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .sub-bump-preview {
+            background: rgba(70,211,105,0.08); border: 1px solid rgba(70,211,105,0.2);
+            border-radius: 6px; padding: 12px 16px; margin-top: 16px; text-align: center;
+        }
+        .sub-bump-val { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--green); }
+        .sub-bump-label { font-size: 12px; color: rgba(70,211,105,0.7); }
+
+        /* Toast */
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast {
+            background: #1e1e1e; border: 1px solid #333; border-left: 3px solid var(--accent);
+            padding: 14px 20px; color: white; font-weight: 600; border-radius: 6px;
+            font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            animation: slideIn 0.3s ease; max-width: 300px;
+        }
+        .toast.success { border-left-color: var(--green); }
+        .toast.warn { border-left-color: #ffb400; }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Back link */
+        .back-link {
+            position: fixed; bottom: 24px; left: calc(var(--sidebar-w) + 20px);
+            background: #1a1a1a; border: 1px solid #333; color: white;
+            padding: 10px 16px; border-radius: 6px; text-decoration: none;
+            font-size: 13px; font-weight: 600; z-index: 500;
+            transition: background 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .back-link:hover { background: #222; }
     </style>
 </head>
 <body>
 
-<div class="top-bar">
-    <div class="top-bar-left">
-        <div class="top-bar-logo">🎬 Studio Hub</div>
-        <a class="back-link" href="index.html">← Dashboard</a>
+<nav class="sidebar">
+    <div class="sidebar-logo">SV</div>
+    <div class="nav-btn" id="nav-home" onclick="switchMode('viewer','all')">
+        🏠<span class="nav-tooltip">Home</span>
     </div>
-    <div class="top-bar-stats">
-        <div class="stat-chip">
-            <span class="label">Week</span>
-            <span class="value week" id="week-display">1</span>
-        </div>
-        <div class="stat-chip">
-            <span class="label">Budget</span>
-            <span class="value budget" id="budget-display">$50,000,000</span>
-        </div>
-        <div class="stat-chip">
-            <span class="label">In Production</span>
-            <span class="value" id="active-count">0</span>
-        </div>
-        <div class="stat-chip">
-            <span class="label">StreamVault Subs</span>
-            <span class="value subs" id="subs-display">0</span>
+    <div class="nav-btn" id="nav-series" onclick="switchMode('viewer','series')">
+        📺<span class="nav-tooltip">Series</span>
+    </div>
+    <div class="nav-btn" id="nav-movies" onclick="switchMode('viewer','movies')">
+        🎬<span class="nav-tooltip">Movies</span>
+    </div>
+    <div class="nav-btn" id="nav-trending" onclick="switchMode('viewer','trending')">
+        📈<span class="nav-tooltip">Trending</span>
+    </div>
+    <div class="nav-btn" id="nav-mylist" onclick="switchMode('viewer','mylist')">
+        ➕<span class="nav-tooltip">My List</span>
+    </div>
+    <div class="nav-btn" id="nav-search" onclick="switchMode('search')">
+        🔍<span class="nav-tooltip">Search</span>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-btn" id="nav-admin" onclick="switchMode('admin')">
+        ⚙️<span class="nav-tooltip">Platform Manager</span>
+    </div>
+</nav>
+
+<div class="shell" id="viewer-shell">
+    <div class="hero" id="hero-banner">
+        <div class="hero-content" id="hero-content"></div>
+    </div>
+    <div id="platform-rows"></div>
+</div>
+
+<div class="shell hidden" id="search-shell">
+    <div class="search-wrap">
+        <input type="text" class="search-input" id="search-input" placeholder="Search titles, genres..." oninput="executeSearch()">
+        <span class="search-label" id="search-count-label"></span>
+    </div>
+    <div id="search-results" class="search-results-wrap"></div>
+</div>
+
+<div class="shell hidden" id="admin-shell">
+    <div class="admin-topbar">
+        <div class="admin-topbar-title">Platform Manager</div>
+        <div class="admin-topbar-actions">
+            <button class="btn-secondary" onclick="window.location.href='index.html'">← Dashboard</button>
+            <button class="btn-secondary" onclick="window.location.href='studio.html'">🎬 Studio</button>
         </div>
     </div>
-    <div class="top-bar-actions">
-        <button class="btn-next-week" id="next-week-btn" onclick="advanceWeek()">⏩ Next Week</button>
-        <button class="btn-util" onclick="undoWeek()">↩ Undo</button>
-        <button class="btn-util" onclick="saveGame()">💾 Save</button>
-        <button class="btn-util" onclick="resetGame()">🔄 Reset</button>
+
+    <div class="admin-body">
+        <div class="stat-grid">
+            <div class="stat-card red">
+                <div class="stat-label">Total Subscribers</div>
+                <div class="stat-val" id="stat-subs">0</div>
+                <div class="stat-delta" id="stat-subs-delta"><span class="delta-neutral">—</span></div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label">Weekly Revenue</div>
+                <div class="stat-val" id="stat-revenue" style="color:var(--green);">$0</div>
+                <div class="stat-delta delta-neutral" id="stat-revenue-sub">at $<span id="stat-subprice">15</span>/sub</div>
+            </div>
+            <div class="stat-card gold">
+                <div class="stat-label">Studio Budget</div>
+                <div class="stat-val" id="stat-budget" style="color:var(--gold);">$0</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-label">Published Titles</div>
+                <div class="stat-val" id="stat-catalog">0</div>
+                <div class="stat-delta delta-neutral" id="stat-vault-count">0 in vault</div>
+            </div>
+        </div>
+
+        <div class="revenue-equation">
+            <div class="eq-part">
+                <div class="eq-val" id="eq-subs">0</div>
+                <div class="eq-label">Subscribers</div>
+            </div>
+            <div class="eq-op">×</div>
+            <div class="eq-part">
+                <div class="eq-val" id="eq-price">$15</div>
+                <div class="eq-label">Price / week</div>
+            </div>
+            <div class="eq-op">=</div>
+            <div class="eq-result">
+                <div class="eq-val" id="eq-total">$0</div>
+                <div class="eq-label">Weekly income</div>
+            </div>
+            <div class="projected-payout">
+                <div class="proj-label">Next Payout — Week <span id="next-week-label">2</span></div>
+                <div class="proj-val" id="proj-payout">$0</div>
+            </div>
+        </div>
+
+        <div class="price-control">
+            <div class="price-label-group">
+                <div class="price-title">Subscription Price</div>
+                <div class="price-desc">Raising price increases revenue but also subscriber churn. Sweet spot is $10–$18.</div>
+            </div>
+            <div class="slider-group">
+                <input type="range" class="price-slider" id="price-slider" min="5" max="30" step="1" value="15" oninput="updatePrice(this.value)">
+                <div class="price-display">$<span id="price-val">15</span></div>
+                <span class="churn-warning" id="churn-warn">✓ Good</span>
+            </div>
+        </div>
+
+        <button class="collect-btn" onclick="collectRevenue()">
+            💰 Collect Revenue & Advance to Week <span id="next-week-label-2">2</span>
+        </button>
+
+        <div class="admin-grid">
+            <div>
+                <div class="admin-card" style="margin-bottom: 20px;">
+                    <div class="admin-card-header">
+                        <h3>Publish from Studio Vault</h3>
+                        <span class="admin-card-count" id="vault-count-badge">0 ready</span>
+                    </div>
+                    <label class="field-label">Select Project</label>
+                    <select class="field-select" id="vault-select" onchange="updatePublishPreview()"></select>
+                    <label class="field-label">Poster Image URL (Optional)</label>
+                    <input type="text" class="field-input" id="poster-url" placeholder="https://example.com/poster.jpg">
+                    <label class="field-label">Assign to Row</label>
+                    <select class="field-select" id="row-assign-select"></select>
+                    <label class="feature-toggle">
+                        <input type="checkbox" id="feature-flag"> Feature this title on the hero banner this week
+                        <span style="color:#ffb400; font-size:11px;">(boosts +20% subscriber gain)</span>
+                    </label>
+                    <div id="publish-preview-block" style="display:none;">
+                        <div class="sub-bump-preview">
+                            <div class="sub-bump-label">Projected subscriber gain</div>
+                            <div class="sub-bump-val" id="preview-sub-bump">+0</div>
+                            <div style="font-size:11px; color:var(--muted); margin-top:4px;">based on this title's production quality</div>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="openPublishModal()">🚀 Publish to Platform</button>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3>Live on Platform</h3>
+                        <span class="admin-card-count" id="published-count-badge">0</span>
+                    </div>
+                    <div id="published-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>Nothing published yet.<br>Publish titles to start growing subscribers.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="admin-card" style="margin-bottom: 20px;">
+                    <div class="admin-card-header">
+                        <h3>Row Manager</h3>
+                        <span class="admin-card-count" id="rows-count-badge">0 rows</span>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-bottom: 14px;">
+                        <input type="text" class="field-input" id="new-row-input" placeholder='e.g. "Award Winners"'>
+                        <button class="btn-primary" style="margin-top:0; white-space:nowrap;" onclick="createRow()">+ Add</button>
+                    </div>
+                    <div id="rows-list"></div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3>Studio Vault</h3>
+                        <span class="admin-card-count" id="vault-preview-count">0 unreleased</span>
+                    </div>
+                    <div id="vault-preview-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">🎬</div>
+                            <p>Finish projects in the Studio<br>to populate your vault.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="app">
-    <!-- MAIN FORM COLUMN -->
-    <div class="col-main">
-        <div class="panel">
-            <div class="panel-title">Create New Project</div>
-
-            <div class="input-row">
-                <div class="form-group">
-                    <label class="field-label">Project Type</label>
-                    <select id="proj-type" onchange="toggleEpisodes(); updateCostPreview()">
-                        <option value="Movie">🎬 Movie</option>
-                        <option value="Anime">⚔️ Anime</option>
-                        <option value="Web Series">📺 Web Series</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="field-label">Genre</label>
-                    <select id="proj-genre">
-                        <option value="Action">Action</option>
-                        <option value="Adventure">Adventure</option>
-                        <option value="Comedy">Comedy</option>
-                        <option value="Crime">Crime</option>
-                        <option value="Documentary">Documentary</option>
-                        <option value="Drama">Drama</option>
-                        <option value="Fantasy">Fantasy</option>
-                        <option value="Horror">Horror</option>
-                        <option value="Musical">Musical</option>
-                        <option value="Mystery">Mystery</option>
-                        <option value="Romance">Romance</option>
-                        <option value="Sci-Fi">Sci-Fi</option>
-                        <option value="Slice of Life">Slice of Life</option>
-                        <option value="Sports">Sports</option>
-                        <option value="Thriller">Thriller</option>
-                        <option value="War">War</option>
-                        <option value="Western">Western</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-group hidden" id="episode-group">
-                <label class="field-label">Episodes <small style="color:var(--muted)">(multiplies runtime & cost)</small></label>
-                <input type="number" id="proj-episodes" value="12" min="1" oninput="updateCostPreview()">
-            </div>
-
-            <div class="form-group">
-                <label class="field-label">Base Production Unit ($20k–$1M)</label>
-                <input type="number" id="proj-base-unit" value="200000" min="20000" max="1000000" step="10000" oninput="updateCostPreview()">
-            </div>
-
-
-            <div class="form-group">
-                <label class="field-label">Title</label>
-                <input type="text" id="proj-title" placeholder="e.g., The Final Arc">
-            </div>
-
-            <div class="checkbox-row">
-                <input type="checkbox" id="proj-sequel">
-                <label for="proj-sequel">📺 Sequel / continuation</label>
-            </div>
-
-            <div class="form-group">
-                <label class="field-label">Runtime per episode/movie</label>
-                <div class="input-row">
-                    <input type="number" id="proj-hr" placeholder="Hours" min="0" value="2" oninput="clampRuntime(); updateCostPreview()">
-                    <input type="number" id="proj-min" placeholder="Minutes" min="0" max="59" value="0" oninput="clampRuntime(); updateCostPreview()">
-                </div>
-                <div id="runtime-warning" class="duplicate-warning hidden">⚠️ Runtime of 0 makes production free — setting minimum to 1 min.</div>
-            </div>
-
-            <div class="section-title">Production Quality (1–15)</div>
-
-            <div class="slider-block">
-                <div class="slider-header">
-                    <label class="field-label">Visuals</label>
-                    <div class="slider-right">
-                        <span class="slider-tier tier-standard" id="vis-tier">Standard</span>
-                        <span class="slider-value" id="vis-val">8</span>
-                    </div>
-                </div>
-                <input type="range" id="proj-vis" min="1" max="15" value="8" oninput="updateCostPreview(); syncSlider('vis')">
-            </div>
-
-            <div class="slider-block">
-                <div class="slider-header">
-                    <label class="field-label">Story</label>
-                    <div class="slider-right">
-                        <span class="slider-tier tier-standard" id="story-tier">Standard</span>
-                        <span class="slider-value" id="story-val">8</span>
-                    </div>
-                </div>
-                <input type="range" id="proj-story" min="1" max="15" value="8" oninput="updateCostPreview(); syncSlider('story')">
-            </div>
-
-            <div class="slider-block">
-                <div class="slider-header">
-                    <label class="field-label">Anim/VFX</label>
-                    <div class="slider-right">
-                        <span class="slider-tier tier-standard" id="vfx-tier">Standard</span>
-                        <span class="slider-value" id="vfx-val">8</span>
-                    </div>
-                </div>
-                <input type="range" id="proj-vfx" min="1" max="15" value="8" oninput="updateCostPreview(); syncSlider('vfx')">
-            </div>
-
-            <div class="slider-block">
-                <div class="slider-header">
-                    <label class="field-label">Post-Prod</label>
-                    <div class="slider-right">
-                        <span class="slider-tier tier-standard" id="post-tier">Standard</span>
-                        <span class="slider-value" id="post-val">8</span>
-                    </div>
-                </div>
-                <input type="range" id="proj-post" min="1" max="15" value="8" oninput="updateCostPreview(); syncSlider('post')">
-            </div>
-
-            <div class="slider-block">
-                <div class="slider-header">
-                    <label class="field-label">Music</label>
-                    <div class="slider-right">
-                        <span class="slider-tier tier-standard" id="music-tier">Standard</span>
-                        <span class="slider-value" id="music-val">8</span>
-                    </div>
-                </div>
-                <input type="range" id="proj-music" min="1" max="15" value="8" oninput="updateCostPreview(); syncSlider('music')">
-            </div>
-
-            <div class="pace-section">
-                <div class="pace-header">
-                    <span class="pace-label-text">Production Pace</span>
-                    <span class="pace-val" id="pace-val">Normal (1x Cost/Time)</span>
-                </div>
-                <input type="range" id="proj-pace" min="1" max="5" value="3" oninput="updateCostPreview(); updatePaceLabel()" style="width: 100%;">
-                <div class="crunch-warning" id="crunch-warning">
-                    🔥 Crunch mode active — talent risk increases and costs double. Use sparingly.
-                </div>
-            </div>
-
-            <div class="section-title">Crew & Cast</div>
-            <div class="input-row">
-                <div class="form-group">
-                    <label class="field-label">Director</label>
-                    <select id="proj-director" onchange="updateCostPreview()"></select>
-                </div>
-                <div class="form-group">
-                    <label class="field-label">Screenwriter / Novelist</label>
-                    <select id="proj-writer" onchange="updateCostPreview()"></select>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="field-label">Actors</label>
-                <div id="cast-container"></div>
-                <div id="duplicate-actor-warning" class="duplicate-warning hidden">⚠️ Same actor selected in multiple roles.</div>
-                <button class="btn-secondary btn-sm" style="margin-top:6px" onclick="addCastRow()">+ Add Actor</button>
-            </div>
-
-            <div class="cost-box">
-                <div class="cost-box-title">Cost Breakdown</div>
-                <div id="cost-breakdown-lines"></div>
-                <div class="cost-total">
-                    <span>Total Estimated Cost</span>
-                    <span class="total-val" id="total-cost-display">$0</span>
-                </div>
-                <div class="cost-remaining">
-                    <span>Budget remaining after</span>
-                    <span class="rem-val good" id="budget-remaining-val">$50,000,000</span>
-                </div>
-                <div id="weeks-preview" style="margin-top:8px; font-size:12px; color: var(--muted);"></div>
-                <div class="imdb-preview">
-                    <div>
-                        <div class="imdb-preview-label">Projected IMDb Score</div>
-                        <div class="imdb-sub-bump" id="imdb-sub-bump-preview">~+0 subscribers on StreamVault</div>
-                    </div>
-                    <div class="imdb-preview-val">
-                        <span class="imdb-badge-mini">IMDb</span><span id="imdb-preview-val">5.0</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-footer">
-                <span style="font-size:12px; color:var(--muted)" id="budget-status"></span>
-                <button class="btn-primary" id="start-btn" onclick="startProduction()">🎬 Start Production</button>
-            </div>
+<div class="modal-overlay" id="publish-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closePublishModal()">✕</button>
+        <div class="modal-title">PUBLISH TO STREAMVAULT</div>
+        <div class="modal-subtitle">Review this release before it goes live to your audience.</div>
+        <div class="modal-proj-info" id="modal-proj-info">
+            <div class="item-title" id="modal-proj-title">—</div>
+            <div class="item-meta" id="modal-proj-type">—</div>
+            <div class="proj-stats-row" id="modal-stats-row"></div>
         </div>
-    </div>
-
-    <!-- MIDDLE COLUMN -->
-    <div class="col-side">
-        <div class="panel">
-            <div class="panel-title">
-                In Production
-                <span class="panel-title-count" id="active-count-badge">0</span>
-            </div>
-            <div id="active-projects-list">
-                <div class="empty-state">No active projects</div>
-            </div>
+        <label class="field-label">Row Assignment</label>
+        <div id="modal-row-name" style="color:white; font-weight:600; font-size:14px; padding: 8px 0;">—</div>
+        <label class="feature-toggle" style="margin-bottom:16px;">
+            <input type="checkbox" id="modal-feature-flag"> Feature on hero banner (boosts +20% subscribers)
+        </label>
+        <div class="sub-bump-preview">
+            <div class="sub-bump-label">Estimated new subscribers from this release</div>
+            <div class="sub-bump-val" id="modal-sub-bump">+0</div>
+            <div style="font-size:11px; color:rgba(70,211,105,0.6); margin-top:4px;" id="modal-bump-note"></div>
         </div>
-        <div class="panel">
-            <div class="panel-title">
-                Finished Catalog
-                <span class="panel-title-count" id="catalog-count-badge">0</span>
-            </div>
-            <div id="catalog-list">
-                <div class="empty-state">Nothing released yet</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- RIGHT COLUMN -->
-    <div class="col-side">
-        <div class="panel">
-            <div class="panel-title">
-                Talent Roster
-                <span class="panel-title-count" id="roster-count-badge">0</span>
-            </div>
-            <div class="roster-summary">
-                <span class="roster-summary-label">Total Roster Payroll</span>
-                <span class="roster-summary-val" id="roster-payroll">$0</span>
-            </div>
-            <div id="roster-list">
-                <div class="empty-state">No talent available.<br>Add some via the Talent Manager!</div>
-            </div>
-        </div>
+        <button class="btn-primary" style="width:100%; justify-content:center; margin-top:20px; padding:14px;" onclick="confirmPublish()">
+            🎬 Confirm & Go Live
+        </button>
     </div>
 </div>
 
 <div id="toast-container"></div>
 
 <script>
-// ===== STATE =====
-let state = {
-    week: 1,
-    budget: 50000000,
-    talent: [],
-    activeProjects: [],
-    finishedCatalog: []
-};
+const SAVE_KEY = 'studioHubSave_v2';
+let studioSave = null;
+let platform = { subscribers: 0, subPrice: 15, rows: ['New this week', 'Trending Now'], publishedCatalog: [] };
+let currentFilter = 'all';
+let prevSubscribers = 0;
 
-let undoStack = [];
+function normalizePlatform(rawPlatform = {}) {
+    return {
+        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
+        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
+        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
+        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
+    };
+}
 
 function normalizeState(rawState = {}) {
     return {
@@ -582,564 +674,479 @@ function normalizeState(rawState = {}) {
     };
 }
 
-function normalizePlatform(rawPlatform = {}) {
-    return {
-        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
-        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
-        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
-        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
-    };
+
+function init() { loadGame(); recalcSubscribers(); renderAll(); }
+
+function loadGame() {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) {
+        studioSave = { state: normalizeState() };
+        studioSave.platform = normalizePlatform(platform);
+        platform = studioSave.platform;
+        return;
+    }
+    studioSave = JSON.parse(raw);
+    studioSave.state = normalizeState(studioSave.state);
+    platform = normalizePlatform(studioSave.platform);
+    studioSave.platform = platform;
 }
 
-function recalcPlatformSubscribers(platformData) {
+function persistSave() {
+    let masterSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
+
+    // Never let an older tab overwrite newer budget/week progress.
+    if (masterSave.state) {
+        const latestState = normalizeState(masterSave.state);
+        studioSave.state.budget = Math.max(studioSave.state.budget || 0, latestState.budget);
+        studioSave.state.week = Math.max(studioSave.state.week || 1, latestState.week);
+        if (latestState.talent.length > studioSave.state.talent.length) studioSave.state.talent = latestState.talent;
+        if (latestState.activeProjects.length > studioSave.state.activeProjects.length) studioSave.state.activeProjects = latestState.activeProjects;
+        if (latestState.finishedCatalog.length > studioSave.state.finishedCatalog.length) studioSave.state.finishedCatalog = latestState.finishedCatalog;
+    }
+
+    masterSave.platform = platform;
+    masterSave.state = studioSave.state;
+    masterSave.undoStack = studioSave.undoStack || [];
+    localStorage.setItem(SAVE_KEY, JSON.stringify(masterSave));
+}
+
+function recalcSubscribers() {
+    prevSubscribers = platform.subscribers;
     let total = 0;
-    (platformData.publishedCatalog || []).forEach(p => {
+    (platform.publishedCatalog || []).forEach(p => {
         const vis = parseInt(p.stats?.vis) || 1;
         const story = parseInt(p.stats?.story) || 1;
         const vfx = parseInt(p.stats?.vfx) || 1;
         let base = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (p.episodes||1) * 0.05));
+        // Freshness decay
         const age = p.weeksOnPlatform || 0;
         const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
         base = Math.floor(base * freshnessFactor);
+        // Feature bonus
         if (p.featured) base = Math.floor(base * 1.2);
-        const priceFactor = Math.max(0.5, 1 - ((platformData.subPrice - 15) * 0.03));
+        // Price sensitivity
+        const priceFactor = Math.max(0.5, 1 - ((platform.subPrice - 15) * 0.03));
         base = Math.floor(base * priceFactor);
         total += base;
     });
-    platformData.subscribers = total;
-    return total;
+    platform.subscribers = total;
 }
 
-function init() {
+function calcProjectSubBump(project, featured) {
+    if (!project) return 0;
+    const vis = parseInt(project.stats?.vis) || 1;
+    const story = parseInt(project.stats?.story) || 1;
+    const vfx = parseInt(project.stats?.vfx) || 1;
+    let bump = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (project.episodes||1) * 0.05));
+    
+    // Apply freshness to preview
+    const age = project.weeksOnPlatform || 0;
+    const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
+    bump = Math.floor(bump * freshnessFactor);
+
+    if (featured) bump = Math.floor(bump * 1.2);
+
+    // Apply price penalty
+    const priceFactor = Math.max(0.5, 1 - ((platform.subPrice - 15) * 0.03));
+    bump = Math.floor(bump * priceFactor);
+
+    return bump;
+}
+
+function getFreshnessLabel(weeksOnPlatform) {
+    if (weeksOnPlatform <= 2) return { label: '🟢 Fresh', cls: 'fresh' };
+    if (weeksOnPlatform <= 6) return { label: '🟡 Aging', cls: 'aging' };
+    return { label: '🔴 Stale', cls: 'stale' };
+}
+
+function getFreshnessPercent(weeksOnPlatform) {
+    return Math.max(10, Math.round(Math.max(0.2, 1 - (weeksOnPlatform * 0.07)) * 100));
+}
+
+function updatePrice(val) {
+    platform.subPrice = parseInt(val);
+    document.getElementById('price-val').innerText = val;
+    document.getElementById('stat-subprice').innerText = val;
+    const warn = document.getElementById('churn-warn');
+    if (val > 25) { warn.textContent = '🚨 Very high churn'; warn.className = 'churn-warning churn-warn'; }
+    else if (val > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
+    else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
+    recalcSubscribers();
+    renderAdmin();
+    persistSave();
+}
+
+function collectRevenue() {
+    // Load fresh game data to prevent tab desync
     loadGame();
-    updateUI();
-    addCastRow();
-    toggleEpisodes();
-    updatePaceLabel();
-    updateCostPreview();
-    syncAllSliders();
-}
+    // Recalc subscribers NOW (after fresh load) so income uses the correct count
+    recalcSubscribers();
 
-function updateUI() {
-    document.getElementById('week-display').innerText = state.week;
-    document.getElementById('budget-display').innerText = '$' + state.budget.toLocaleString();
-    document.getElementById('active-count').innerText = state.activeProjects.length;
-    document.getElementById('active-count-badge').innerText = state.activeProjects.length;
+    const income = platform.subscribers * platform.subPrice;
+    studioSave.state.budget += income;
+    studioSave.state.week++;
 
-    // StreamVault subs from master save
-    const masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
-    const subs = masterSave.platform?.subscribers || 0;
-    document.getElementById('subs-display').innerText = subs.toLocaleString();
-
-    // Pulse Next Week if any project is 1 week away
-    const nearFinish = state.activeProjects.some(p => p.weeksRemaining <= 1);
-    const btn = document.getElementById('next-week-btn');
-    if (nearFinish) btn.classList.add('pulse'); else btn.classList.remove('pulse');
-
-    populateDropdowns();
-    refreshCastRows();
-    renderRoster();
-    renderActiveProjects();
-    renderCatalog();
-    updateCostPreview();
-}
-
-function syncSlider(id) {
-    const val = document.getElementById(`proj-${id}`).value;
-    document.getElementById(`${id}-val`).innerText = val;
-    const tierEl = document.getElementById(`${id}-tier`);
-    const v = parseInt(val);
-    if (v <= 4)       { tierEl.textContent = 'Budget';      tierEl.className = 'slider-tier tier-budget'; }
-    else if (v <= 8)  { tierEl.textContent = 'Standard';    tierEl.className = 'slider-tier tier-standard'; }
-    else if (v <= 12) { tierEl.textContent = 'Premium';     tierEl.className = 'slider-tier tier-premium'; }
-    else              { tierEl.textContent = 'Blockbuster'; tierEl.className = 'slider-tier tier-blockbuster'; }
-}
-
-function syncAllSliders() {
-    ['vis','story','vfx','post','music'].forEach(id => syncSlider(id));
-}
-
-function toggleEpisodes() {
-    const type = document.getElementById('proj-type').value;
-    const epGroup = document.getElementById('episode-group');
-    if (type === 'Anime' || type === 'Web Series') epGroup.classList.remove('hidden');
-    else epGroup.classList.add('hidden');
-}
-
-function clampRuntime() {
-    const hr = parseInt(document.getElementById('proj-hr').value) || 0;
-    const min = parseInt(document.getElementById('proj-min').value) || 0;
-    const warn = document.getElementById('runtime-warning');
-    if (hr === 0 && min === 0) warn.classList.remove('hidden');
-    else warn.classList.add('hidden');
-}
-
-function updatePaceLabel() {
-    const val = document.getElementById('proj-pace').value;
-    const labels = {
-        "1": "Relaxed (−50% Cost, +50% Time)",
-        "2": "Steady (−25% Cost, +25% Time)",
-        "3": "Normal (1× Cost/Time)",
-        "4": "Rushed (+25% Cost, −25% Time)",
-        "5": "Crunch (+100% Cost, −50% Time)"
-    };
-    document.getElementById('pace-val').innerText = labels[val];
-    const warn = document.getElementById('crunch-warning');
-    if (val === '5') warn.classList.add('show'); else warn.classList.remove('show');
-}
-
-function getSelectedActorIds() {
-    const ids = [];
-    document.querySelectorAll('.cast-row .actor-select').forEach(sel => { if (sel.value) ids.push(sel.value); });
-    return ids;
-}
-
-function checkDuplicateActors() {
-    const ids = getSelectedActorIds();
-    const unique = new Set(ids);
-    const warn = document.getElementById('duplicate-actor-warning');
-    if (ids.length !== unique.size) { warn.classList.remove('hidden'); return true; }
-    warn.classList.add('hidden'); return false;
-}
-
-function addCastRow() {
-    const container = document.getElementById('cast-container');
-    const row = document.createElement('div');
-    row.className = 'cast-row';
-    const options = state.talent
-        .filter(t => t.role === 'Actor' && t.status === 'Idle')
-        .map(t => `<option value="${t.id}">${t.name} ($${t.salary.toLocaleString()})</option>`)
-        .join('');
-    row.innerHTML = `
-        <select class="actor-select" onchange="updateCostPreview(); checkDuplicateActors()">
-            <option value="">— Select Actor —</option>
-            ${options}
-        </select>
-        <select class="role-select" onchange="updateCostPreview()">
-            <option value="1">Lead (100%)</option>
-            <option value="0.5">Side (50%)</option>
-            <option value="0.1">Extra (10%)</option>
-        </select>
-        <button class="btn-icon" type="button" onclick="this.closest('.cast-row').remove(); updateCostPreview(); checkDuplicateActors()">✕</button>
-    `;
-    container.appendChild(row);
-}
-
-function refreshCastRows() {
-    const idleActors = state.talent.filter(t => t.role === 'Actor' && t.status === 'Idle');
-    document.querySelectorAll('.cast-row .actor-select').forEach(sel => {
-        const prev = sel.value;
-        let options = '<option value="">— Select Actor —</option>';
-        idleActors.forEach(a => {
-            options += `<option value="${a.id}" ${String(a.id) === prev ? 'selected' : ''}>${a.name} ($${a.salary.toLocaleString()})</option>`;
-        });
-        // Keep currently selected actor visible in case they are no longer idle.
-        if (prev && !idleActors.some(a => String(a.id) === prev)) {
-            const actor = state.talent.find(t => String(t.id) === prev);
-            if (actor) options += `<option value="${actor.id}" selected>${actor.name} ($${actor.salary.toLocaleString()})</option>`;
-        }
-        sel.innerHTML = options;
-    });
-}
-
-function populateDropdowns() {
-    const dirDrop = document.getElementById('proj-director');
-    const writDrop = document.getElementById('proj-writer');
-    const curDir = dirDrop.value; const curWrit = writDrop.value;
-    dirDrop.innerHTML = '<option value="">— No Director —</option>';
-    writDrop.innerHTML = '<option value="">— No Writer —</option>';
-    state.talent.forEach(t => {
-        if (t.role === 'Director' && t.status === 'Idle')
-            dirDrop.innerHTML += `<option value="${t.id}" ${curDir == t.id ? 'selected' : ''}>${t.name} ($${t.salary.toLocaleString()})</option>`;
-        if (t.role === 'Writer')
-            writDrop.innerHTML += `<option value="${t.id}" ${curWrit == t.id ? 'selected' : ''}>${t.name} ($${t.salary.toLocaleString()})</option>`;
-    });
-}
-
-// ===== MASTER MATH ENGINE (unchanged) =====
-function computeCost() {
-    const vis   = parseInt(document.getElementById('proj-vis').value)   || 1;
-    const story = parseInt(document.getElementById('proj-story').value) || 1;
-    const vfx   = parseInt(document.getElementById('proj-vfx').value)   || 1;
-    const post  = parseInt(document.getElementById('proj-post').value)  || 1;
-    const music = parseInt(document.getElementById('proj-music').value) || 1;
-    const type  = document.getElementById('proj-type').value;
-    const eps   = (type !== 'Movie') ? (parseInt(document.getElementById('proj-episodes').value) || 1) : 1;
-    let hr  = parseInt(document.getElementById('proj-hr').value)  || 0;
-    let min = parseInt(document.getElementById('proj-min').value) || 0;
-    let totalMin = hr * 60 + min;
-    if (totalMin < 1) totalMin = 1;
-    const totalHours = (totalMin / 60) * eps;
-    const baseUnitInput = parseInt(document.getElementById('proj-base-unit')?.value);
-    const k = Math.min(1000000, Math.max(20000, Number.isFinite(baseUnitInput) ? baseUnitInput : 200000));
-    const paceVal = parseInt(document.getElementById('proj-pace')?.value) || 3;
-    const costMults = {1: 0.5, 2: 0.75, 3: 1.0, 4: 1.25, 5: 2.0};
-    const paceCostMult = costMults[paceVal];
-    const costVis   = vis * k;
-    const costStory = 0.5 * story * k;
-    const costVfx   = 0.25 * Math.pow(1.75, vfx - 1) * k;
-    const costPost  = 0.5 * post * k;
-    const costMusic = 0.25 * music * k;
-    const prodCostPerHour = costVis + costStory + costVfx + costPost + costMusic;
-    const prodCost = prodCostPerHour * totalHours * paceCostMult;
-    const dirId  = document.getElementById('proj-director').value;
-    const writId = document.getElementById('proj-writer').value;
-    const dirCost  = dirId  ? (state.talent.find(t => t.id == dirId)?.salary  || 0) * eps * paceCostMult : 0;
-    const writCost = writId ? (state.talent.find(t => t.id == writId)?.salary || 0) * eps * paceCostMult : 0;
-    let actorCost = 0;
-    const actorLines = [];
-    document.querySelectorAll('.cast-row').forEach(row => {
-        const actorId = row.querySelector('.actor-select').value;
-        const mult    = parseFloat(row.querySelector('.role-select').value);
-        if (actorId) {
-            const actor = state.talent.find(t => t.id == actorId);
-            if (actor) {
-                const c = actor.salary * mult * eps * paceCostMult;
-                actorCost += c; actorLines.push({ name: actor.name, cost: c, base: actor.salary * mult * eps });
-            }
-        }
-    });
-    let baseWeeksPerHour = 0;
-    if (type === 'Movie') {
-        if (vfx <= 4) baseWeeksPerHour = 16; else if (vfx <= 10) baseWeeksPerHour = 32; else baseWeeksPerHour = 48;
-    } else if (type === 'Web Series') {
-        if (vfx <= 4) baseWeeksPerHour = 2; else if (vfx <= 10) baseWeeksPerHour = 6; else baseWeeksPerHour = 12;
-    } else if (type === 'Anime') {
-        if (vfx <= 4) baseWeeksPerHour = 12; else if (vfx <= 10) baseWeeksPerHour = 16; else baseWeeksPerHour = 20;
-    }
-    const timeMults = {1: 1.5, 2: 1.25, 3: 1.0, 4: 0.75, 5: 0.5};
-    let weeks = Math.ceil((baseWeeksPerHour * totalHours) * timeMults[paceVal]);
-    if (weeks < 1) weeks = 1;
-    return { prodCost, dirCost, writCost, actorCost, actorLines, total: prodCost + dirCost + writCost + actorCost, eps, weeks, vis, story, vfx, post, music };
-}
-
-function updateCostPreview() {
-    const breakdown = computeCost();
-    const { prodCost, dirCost, writCost, actorLines, total, eps, weeks, vis, story, vfx, post, music } = breakdown;
-    const dirId  = document.getElementById('proj-director').value;
-    const writId = document.getElementById('proj-writer').value;
-    const dirName  = dirId  ? state.talent.find(t => t.id == dirId)?.name  : null;
-    const writName = writId ? state.talent.find(t => t.id == writId)?.name : null;
-
-    const allCosts = [
-        { label: 'Base Production', cost: prodCost },
-        ...(dirName  ? [{ label: `Director: ${dirName}`, cost: dirCost }]  : []),
-        ...(writName ? [{ label: `Writer: ${writName}`,  cost: writCost }] : []),
-        ...actorLines.map(a => ({ label: `Actor: ${a.name}`, cost: a.cost }))
-    ];
-    const maxCost = Math.max(...allCosts.map(c => c.cost), 1);
-
-    let lines = '';
-    allCosts.forEach(c => {
-        const pct = Math.round((c.cost / maxCost) * 100);
-        lines += `
-            <div class="cost-line">
-                <div class="cost-line-left">
-                    <span class="cost-line-name">${c.label}</span>
-                    <div class="cost-bar-track"><div class="cost-bar-fill" style="width:${pct}%"></div></div>
-                </div>
-                <span class="cost-line-val">$${Math.floor(c.cost).toLocaleString()}</span>
-            </div>`;
-    });
-    document.getElementById('cost-breakdown-lines').innerHTML = lines;
-
-    const totalEl = document.getElementById('total-cost-display');
-    totalEl.innerText = '$' + Math.floor(total).toLocaleString();
-    const overBudget = total > state.budget;
-    totalEl.className = 'total-val' + (overBudget ? ' over-budget' : '');
-
-    // Budget remaining after
-    const remaining = state.budget - Math.floor(total);
-    const remEl = document.getElementById('budget-remaining-val');
-    remEl.innerText = '$' + Math.abs(remaining).toLocaleString();
-    if (overBudget) { remEl.className = 'rem-val danger'; remEl.innerText = '−$' + Math.abs(remaining).toLocaleString(); }
-    else if (remaining < state.budget * 0.2) remEl.className = 'rem-val low';
-    else remEl.className = 'rem-val good';
-
-    document.getElementById('weeks-preview').innerText = `⏱ Est. ${weeks} week${weeks !== 1 ? 's' : ''} in production`;
-
-    const statusEl = document.getElementById('budget-status');
-    if (overBudget) statusEl.innerHTML = `<span style="color:#ff6666">⚠️ Over budget by $${Math.abs(remaining).toLocaleString()}</span>`;
-    else statusEl.innerHTML = `<span style="color:var(--muted)">After: $${remaining.toLocaleString()} remaining</span>`;
-
-    document.getElementById('start-btn').disabled = overBudget;
-
-    // Live IMDb preview
-    const avg = Math.round((vis + story + vfx + post + music) / 5);
-    const imdb = (avg / 15 * 9.9).toFixed(1);
-    document.getElementById('imdb-preview-val').innerText = imdb;
-
-    // Projected sub bump preview
-    const subBump = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (eps||1) * 0.05));
-    const bumpStr = subBump > 1000000 ? (subBump/1000000).toFixed(1)+'M' : subBump.toLocaleString();
-    document.getElementById('imdb-sub-bump-preview').innerText = `~+${bumpStr} subscribers on StreamVault`;
-
-    return Math.floor(total);
-}
-
-function startProduction() {
-    const title = document.getElementById('proj-title').value.trim();
-    if (!title) { toast('Please enter a title!', 'warn'); return; }
-    if (checkDuplicateActors()) { toast('Remove duplicate actor selections first.', 'warn'); return; }
-    const breakdown = computeCost();
-    const cost = breakdown.total;
-    if (state.budget < cost) { toast('Not enough budget!', 'warn'); return; }
-    saveStateForUndo();
-    state.budget -= cost;
-    let involvedIds = [];
-    const dirId  = document.getElementById('proj-director').value;
-    const writId = document.getElementById('proj-writer').value;
-    if (dirId)  involvedIds.push(parseInt(dirId));
-    if (writId) involvedIds.push(parseInt(writId));
-    document.querySelectorAll('.cast-row').forEach(row => {
-        const actorId = row.querySelector('.actor-select').value;
-        if (actorId) involvedIds.push(parseInt(actorId));
-    });
-    state.talent.forEach(t => {
-        if (involvedIds.includes(t.id) && t.role !== 'Writer') {
-            t.status = 'Working';
-            t.project = title;
-        }
-    });
-    const type  = document.getElementById('proj-type').value;
-    const genre = document.getElementById('proj-genre').value;
-    const paceVal = parseInt(document.getElementById('proj-pace').value) || 3;
-    state.activeProjects.push({
-        title, type, genre,
-        episodes: breakdown.eps,
-        weeksRemaining: breakdown.weeks,
-        weeksTotal: breakdown.weeks,
-        involvedTalent: involvedIds,
-        pace: paceVal,
-        stats: { vis: breakdown.vis, story: breakdown.story, vfx: breakdown.vfx, post: breakdown.post, music: breakdown.music }
-    });
-    toast(`🎬 "${title}" entered production! (${breakdown.weeks} wks)`, 'success');
-    document.getElementById('proj-title').value = '';
-    document.getElementById('cast-container').innerHTML = '';
-    addCastRow();
-    updateUI();
-    saveGame(null, true);
-}
-
-function advanceWeek() {
-    saveStateForUndo();
-
-    const masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
-    const platformData = normalizePlatform(masterSave.platform);
-    const subscribers = recalcPlatformSubscribers(platformData);
-    const streamIncome = subscribers * platformData.subPrice;
-
-    state.budget += streamIncome;
-
-    state.week++;
-
-    platformData.publishedCatalog.forEach(p => {
+    // Age all published catalog items
+    platform.publishedCatalog.forEach(p => {
         p.weeksOnPlatform = (p.weeksOnPlatform || 0) + 1;
     });
 
-    const finished = [];
-    for (let i = state.activeProjects.length - 1; i >= 0; i--) {
-        state.activeProjects[i].weeksRemaining--;
-        if (state.activeProjects[i].weeksRemaining <= 0) {
-            const fp = state.activeProjects.splice(i, 1)[0];
-            fp.completedWeek = state.week;
-            finished.push(fp);
-            state.finishedCatalog.unshift(fp);
-            state.talent.forEach(t => {
-                if (fp.involvedTalent.includes(t.id) && t.role !== 'Writer') { t.status = 'Idle'; t.project = ''; }
-            });
+    const projects = studioSave.state.activeProjects || [];
+    for (let i = projects.length - 1; i >= 0; i--) {
+        projects[i].weeksRemaining--;
+        if (projects[i].weeksRemaining <= 0) {
+            const fp = projects.splice(i, 1)[0];
+            fp.completedWeek = studioSave.state.week;
+            studioSave.state.finishedCatalog.unshift(fp);
+            (studioSave.state.talent || []).forEach(t => { if ((fp.involvedTalent || []).includes(t.id)) { t.status = 'Idle'; t.project = ''; } });
         }
     }
-    if (finished.length === 1) toast(`✅ "${finished[0].title}" finished! Added to catalog.`, 'success');
-    else if (finished.length > 1) toast(`✅ ${finished.length} projects finished: ${finished.map(f => `"${f.title}"`).join(', ')}`, 'success');
-    if (streamIncome > 0) toast(`💰 StreamVault payout: +$${streamIncome.toLocaleString()}`, 'success');
-    updateUI();
-    saveGame(platformData);
+    persistSave(); renderAll();
+    toast(`💰 Collected $${income.toLocaleString()}!`, 'success');
 }
 
-function saveStateForUndo() {
-    undoStack.push(JSON.parse(JSON.stringify(state)));
-    if (undoStack.length > 10) undoStack.shift();
+function openPublishModal() {
+    const title = document.getElementById('vault-select').value;
+    if (!title) { toast('No project selected.', 'warn'); return; }
+    const project = studioSave.state.finishedCatalog.find(p => p.title === title);
+    if (!project) return;
+    const featured = document.getElementById('feature-flag').checked;
+    const row = document.getElementById('row-assign-select').value;
+    const bump = calcProjectSubBump(project, featured);
+    const avg = Math.round(((parseInt(project.stats?.vis)||5)+(parseInt(project.stats?.story)||5)+(parseInt(project.stats?.vfx)||5))/3);
+    const imdb = (avg / 10 * 9.9).toFixed(1);
+
+    document.getElementById('modal-proj-title').innerText = project.title;
+    document.getElementById('modal-proj-type').innerText = `${project.type} · ${project.genre || ''}`;
+    document.getElementById('modal-stats-row').innerHTML = `
+        <div class="proj-stat"><div class="proj-stat-val">${project.stats?.vis||'?'}</div><div class="proj-stat-label">Visuals</div></div>
+        <div class="proj-stat"><div class="proj-stat-val">${project.stats?.story||'?'}</div><div class="proj-stat-label">Story</div></div>
+        <div class="proj-stat"><div class="proj-stat-val">${project.stats?.vfx||'?'}</div><div class="proj-stat-label">VFX</div></div>
+        <div class="proj-stat"><div class="proj-stat-val">${imdb}</div><div class="proj-stat-label">IMDb</div></div>
+    `;
+    document.getElementById('modal-row-name').innerText = row || '—';
+    document.getElementById('modal-feature-flag').checked = featured;
+    document.getElementById('modal-sub-bump').innerText = '+' + bump.toLocaleString();
+    document.getElementById('modal-bump-note').innerText = featured ? 'Featured bonus (+20%) applied' : 'Enable hero feature for a +20% boost';
+    document.getElementById('publish-modal').classList.add('open');
 }
 
-function undoWeek() {
-    if (!undoStack.length) { toast('Nothing to undo!', 'warn'); return; }
-    state = undoStack.pop();
-    updateUI();
-    toast('↩ Reverted one step.', '');
+function closePublishModal() {
+    document.getElementById('publish-modal').classList.remove('open');
 }
 
-function renderRoster() {
-    const list = document.getElementById('roster-list');
-    document.getElementById('roster-count-badge').innerText = (state.talent||[]).length;
+function confirmPublish() {
+    const title = document.getElementById('vault-select').value;
+    if (!title) return;
+    const idx = studioSave.state.finishedCatalog.findIndex(p => p.title === title);
+    if (idx < 0) { toast('Project not found in vault.', 'warn'); return; }
+    const project = studioSave.state.finishedCatalog.splice(idx, 1)[0];
+    
+    project.poster = document.getElementById('poster-url').value.trim() || null;
+    project.row = document.getElementById('row-assign-select').value;
+    project.featured = document.getElementById('modal-feature-flag').checked;
+    
+    // 3. Prevent Infinite Freshness (preserve existing age if un-published and republished)
+    project.weeksOnPlatform = project.weeksOnPlatform || 0; 
+    
+    // 4. Prevent Everything Featured Exploit
+    if (project.featured) {
+        platform.publishedCatalog.forEach(p => p.featured = false);
+    }
 
-    // Total payroll
-    const totalPayroll = (state.talent||[]).reduce((s, t) => s + (t.salary||0), 0);
-    document.getElementById('roster-payroll').innerText = '$' + totalPayroll.toLocaleString();
+    platform.publishedCatalog.unshift(project);
+    recalcSubscribers(); persistSave(); renderAll();
+    
+    document.getElementById('poster-url').value = '';
+    document.getElementById('feature-flag').checked = false;
+    closePublishModal();
+    toast(`🎬 "${project.title}" is now streaming!`, 'success');
+}
 
-    if (!state.talent || state.talent.length === 0) {
-        list.innerHTML = '<div class="empty-state">No talent available.<br>Add some via the Talent Manager!</div>';
+function updatePublishPreview() {
+    const title = document.getElementById('vault-select').value;
+    if (!title) { document.getElementById('publish-preview-block').style.display = 'none'; return; }
+    const project = studioSave.state.finishedCatalog.find(p => p.title === title);
+    if (!project) return;
+    const featured = document.getElementById('feature-flag').checked;
+    const bump = calcProjectSubBump(project, featured);
+    document.getElementById('preview-sub-bump').innerText = '+' + bump.toLocaleString();
+    document.getElementById('publish-preview-block').style.display = 'block';
+}
+
+function unpublishProject(title) {
+    const idx = platform.publishedCatalog.findIndex(p => p.title === title);
+    if (idx < 0) { toast('Project is not currently published.', 'warn'); return; }
+    const project = platform.publishedCatalog.splice(idx, 1)[0];
+    studioSave.state.finishedCatalog.unshift(project);
+    recalcSubscribers(); persistSave(); renderAll();
+    toast(`"${title}" moved back to vault.`);
+}
+
+function createRow() {
+    const name = document.getElementById('new-row-input').value.trim();
+    if (name && !platform.rows.includes(name)) { platform.rows.push(name); persistSave(); renderAll(); }
+    document.getElementById('new-row-input').value = '';
+}
+
+function deleteRow(name) {
+    // 5. Delete Last Row Black Hole fix
+    if (platform.rows.length <= 1) {
+        toast("You must have at least one row!", "warn");
         return;
     }
-    list.innerHTML = '';
-    state.talent.forEach(t => {
-        const isWorking = t.status === 'Working';
-        // Power rating: salary tier 1-5
-        const power = Math.min(5, Math.max(1, Math.ceil(t.salary / 2000000)));
-        const powerStars = '⭐'.repeat(power);
-        list.innerHTML += `
-            <div class="roster-item">
+    platform.publishedCatalog.filter(p => p.row === name).forEach(p => p.row = platform.rows.filter(r => r !== name)[0]);
+    platform.rows = platform.rows.filter(r => r !== name);
+    persistSave(); renderAll();
+}
+
+function renderViewer() {
+    const heroEl = document.getElementById('hero-banner');
+    const contentEl = document.getElementById('hero-content');
+
+    let displayCatalog = platform.publishedCatalog;
+    if (currentFilter === 'series') displayCatalog = displayCatalog.filter(p => p.type === 'Web Series' || p.type === 'Anime');
+    else if (currentFilter === 'movies') displayCatalog = displayCatalog.filter(p => p.type === 'Movie');
+    else if (currentFilter === 'trending') displayCatalog = [...displayCatalog].sort((a,b) => {
+        const avgA = (parseInt(a.stats?.vis)||0)+(parseInt(a.stats?.story)||0)+(parseInt(a.stats?.vfx)||0);
+        const avgB = (parseInt(b.stats?.vis)||0)+(parseInt(b.stats?.story)||0)+(parseInt(b.stats?.vfx)||0);
+        return avgB - avgA;
+    });
+    else if (currentFilter === 'mylist') displayCatalog = [];
+
+    if (!displayCatalog.length) {
+        heroEl.style.backgroundImage = 'none';
+        heroEl.style.background = 'linear-gradient(135deg, #1a0a0a, #0a0a0a)';
+        let msg = currentFilter === 'mylist' ? 'Your list is empty.' : 'Go to Platform Manager to publish content.';
+        contentEl.innerHTML = `
+            <div class="hero-n-badge"><span>N</span> STREAMVAULT</div>
+            <div class="hero-title">NO\nCONTENT</div>
+            <p style="color:var(--muted); font-size:15px; margin-top:10px;">${msg}</p>
+            <div class="hero-actions" style="margin-top:20px;">
+                <button class="btn-hero btn-play" onclick="switchMode('admin')">⚙️ Platform Manager</button>
+            </div>
+        `;
+    } else {
+        const hero = displayCatalog[0];
+        heroEl.style.backgroundImage = hero.poster ? `url('${hero.poster}')` : 'none';
+        if (!hero.poster) heroEl.style.background = 'linear-gradient(135deg, #1a0505, #0a0a14)';
+        const avg = Math.round(((parseInt(hero.stats?.vis)||5)+(parseInt(hero.stats?.story)||5)+(parseInt(hero.stats?.vfx)||5))/3);
+        const imdb = (avg / 10 * 9.9).toFixed(1);
+        const streams = Math.floor(platform.subscribers * (1 + avg/10));
+        const freshnessInfo = getFreshnessLabel(hero.weeksOnPlatform || 0);
+
+        contentEl.innerHTML = `
+            <div class="hero-n-badge"><span>N</span> ${hero.type.toUpperCase()}</div>
+            <div class="hero-title">${hero.title.toUpperCase()}</div>
+            <div class="hero-meta">
+                <span class="imdb-badge">IMDb ${imdb}</span>
+                <span class="hero-type-badge">${hero.genre || hero.type}</span>
+                <span class="freshness-pill ${freshnessInfo.cls}">${freshnessInfo.label}</span>
+            </div>
+            <div class="stream-count">
+                <span>${streams > 1000000 ? (streams/1000000).toFixed(1) + 'M+' : streams.toLocaleString()}</span> streams this week
+            </div>
+            <div class="hero-actions">
+                <button class="btn-hero btn-play">▶ Play</button>
+                <button class="btn-hero btn-info">ℹ More Info</button>
+            </div>
+        `;
+    }
+
+    const container = document.getElementById('platform-rows');
+    container.innerHTML = '';
+    if (currentFilter === 'mylist' && displayCatalog.length === 0) return;
+
+    platform.rows.forEach(rowName => {
+        const movies = displayCatalog.filter(p => p.row === rowName);
+        const cardsHTML = movies.length
+            ? movies.map(m => posterCardHTML(m)).join('')
+            : `<div class="empty-row-ghost"><div class="ghost-icon">🎬</div><span>Publish content<br>to this row</span></div>`;
+        container.innerHTML += `
+            <div class="row-section">
+                <div class="row-header">
+                    <div class="row-name">${rowName}</div>
+                    <span class="row-see-all">See all →</span>
+                </div>
+                <div class="row-track">${cardsHTML}</div>
+            </div>
+        `;
+    });
+}
+
+function posterCardHTML(movie) {
+    const avg = Math.round(((parseInt(movie.stats?.vis)||5)+(parseInt(movie.stats?.story)||5)+(parseInt(movie.stats?.vfx)||5))/3);
+    const imdb = (avg / 10 * 9.9).toFixed(1);
+    const freshPct = getFreshnessPercent(movie.weeksOnPlatform || 0);
+    const freshColor = freshPct > 60 ? 'var(--green)' : freshPct > 30 ? '#ffb400' : '#ff5050';
+    const inner = `
+        <div class="poster-fallback">
+            <div class="fallback-title">${movie.title}</div>
+            <div class="fallback-genre">${movie.genre || movie.type}</div>
+        </div>
+        <div class="card-hover-overlay">
+            <div class="hover-title">${movie.title}</div>
+            <div class="hover-imdb">★ ${imdb} IMDb</div>
+        </div>
+        <div class="hover-play-btn">▶</div>
+        <div class="freshness-bar-wrap">
+            <div class="freshness-bar" style="width:${freshPct}%; background:${freshColor};"></div>
+        </div>
+    `;
+    if (movie.poster) {
+        return `<div class="poster-card" style="background-image:url('${movie.poster}')" title="${movie.title}">${inner}</div>`;
+    }
+    return `<div class="poster-card" title="${movie.title}">${inner}</div>`;
+}
+
+function renderAdmin() {
+    const subs = platform.subscribers;
+    const revenue = subs * platform.subPrice;
+    const week = studioSave.state.week;
+    const vault = studioSave.state.finishedCatalog || [];
+
+    document.getElementById('stat-subs').innerText = subs.toLocaleString();
+    document.getElementById('stat-revenue').innerText = '$' + revenue.toLocaleString();
+    document.getElementById('stat-budget').innerText = '$' + studioSave.state.budget.toLocaleString();
+    document.getElementById('stat-catalog').innerText = platform.publishedCatalog.length;
+    document.getElementById('stat-vault-count').innerText = vault.length + ' in vault';
+
+    // Delta
+    const delta = subs - prevSubscribers;
+    const deltaEl = document.getElementById('stat-subs-delta');
+    if (delta > 0) deltaEl.innerHTML = `<span class="delta-up">▲ +${delta.toLocaleString()} this week</span>`;
+    else if (delta < 0) deltaEl.innerHTML = `<span style="color:#ff5555;">▼ ${delta.toLocaleString()} this week</span>`;
+    else deltaEl.innerHTML = `<span class="delta-neutral">No change</span>`;
+
+    // Equation
+    document.getElementById('eq-subs').innerText = subs.toLocaleString();
+    document.getElementById('eq-price').innerText = '$' + platform.subPrice;
+    document.getElementById('eq-total').innerText = '$' + revenue.toLocaleString();
+    document.getElementById('proj-payout').innerText = '$' + revenue.toLocaleString();
+    document.getElementById('next-week-label').innerText = week + 1;
+    document.getElementById('next-week-label-2').innerText = week + 1;
+
+    // Price slider sync
+    document.getElementById('price-slider').value = platform.subPrice;
+    document.getElementById('price-val').innerText = platform.subPrice;
+    document.getElementById('stat-subprice').innerText = platform.subPrice;
+    const warn = document.getElementById('churn-warn');
+    if (platform.subPrice > 25) { warn.textContent = '🚨 Very high churn'; warn.className = 'churn-warning churn-warn'; }
+    else if (platform.subPrice > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
+    else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
+
+    // Vault select
+    document.getElementById('vault-select').innerHTML = vault.length
+        ? vault.map(p => `<option value="${p.title}">${p.title} (${p.type})</option>`).join('')
+        : '<option value="">— No finished projects —</option>';
+    document.getElementById('vault-count-badge').innerText = vault.length + ' ready';
+    document.getElementById('vault-preview-count').innerText = vault.length + ' unreleased';
+    document.getElementById('row-assign-select').innerHTML = platform.rows.map(r => `<option value="${r}">${r}</option>`).join('');
+
+    // Published list
+    const pubList = document.getElementById('published-list');
+    if (platform.publishedCatalog.length === 0) {
+        pubList.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>Nothing published yet.</p></div>`;
+    } else {
+        pubList.innerHTML = platform.publishedCatalog.map(p => {
+            const freshPct = getFreshnessPercent(p.weeksOnPlatform || 0);
+            const freshInfo = getFreshnessLabel(p.weeksOnPlatform || 0);
+            const freshColor = freshPct > 60 ? 'var(--green)' : freshPct > 30 ? '#ffb400' : '#ff5050';
+            return `
+            <div class="published-item">
                 <div>
-                    <div class="roster-name">${t.name}</div>
-                    <div class="roster-role">${t.role}</div>
-                    <div class="roster-salary">$${t.salary.toLocaleString()} / project</div>
-                    <div class="roster-power">${powerStars} Power ${power}/5</div>
-                    ${isWorking ? `<div class="roster-project">📽 ${t.project}</div>` : ''}
-                </div>
-                <span class="badge ${isWorking ? 'badge-working' : 'badge-idle'}">${t.status}</span>
-            </div>
-        `;
-    });
-}
-
-function renderActiveProjects() {
-    const list = document.getElementById('active-projects-list');
-    document.getElementById('active-count').innerText = state.activeProjects.length;
-    document.getElementById('active-count-badge').innerText = state.activeProjects.length;
-    if (!state.activeProjects.length) { list.innerHTML = '<div class="empty-state">No active projects</div>'; return; }
-
-    // Get published titles from master save for reference
-    const masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
-    const publishedTitles = new Set((masterSave.platform?.publishedCatalog || []).map(p => p.title));
-
-    list.innerHTML = '';
-    state.activeProjects.forEach(p => {
-        const pct = Math.max(0, Math.round((1 - p.weeksRemaining / p.weeksTotal) * 100));
-        const eps = p.episodes > 1 ? ` · ${p.episodes} eps` : '';
-        const isNearFinish = p.weeksRemaining <= 1;
-        const paceLabel = p.pace === 5 ? '<span class="pace-badge pace-crunch">⚡ Crunch</span>'
-                        : p.pace === 1 ? '<span class="pace-badge pace-relaxed">🐢 Relaxed</span>'
-                        : '';
-
-        // Involved talent names
-        const talentNames = (p.involvedTalent || [])
-            .map(id => state.talent.find(t => t.id === id)?.name)
-            .filter(Boolean);
-        const talentStr = talentNames.length ? talentNames.join(', ') : '';
-
-        list.innerHTML += `
-            <div class="project-card${isNearFinish ? ' near-finish' : ''}">
-                <div class="project-card-header">
-                    <div class="project-card-title">${p.title}</div>
-                    ${paceLabel}
-                </div>
-                <div class="project-card-meta">
-                    <span>${p.type}${eps}</span>
-                    <span>${p.genre || 'Uncategorized'}</span>
-                    <span>V${p.stats.vis} S${p.stats.story} X${p.stats.vfx}</span>
-                </div>
-                ${talentStr ? `<div class="project-talent-row">👥 ${talentStr}</div>` : ''}
-                <div class="weeks-bar"><div class="weeks-bar-fill" style="width:${pct}%"></div></div>
-                <div class="weeks-label">
-                    <span${isNearFinish ? ' class="near-text"' : ''}>
-                        ${isNearFinish ? '🏁 Finishing next week!' : `${p.weeksRemaining} wk${p.weeksRemaining !== 1 ? 's' : ''} left`}
-                    </span>
-                    <span>${pct}%</span>
-                </div>
-            </div>
-        `;
-    });
-}
-
-function renderCatalog() {
-    const list = document.getElementById('catalog-list');
-    document.getElementById('catalog-count-badge').innerText = state.finishedCatalog.length;
-
-    if (!state.finishedCatalog.length) { list.innerHTML = '<div class="empty-state">Nothing released yet</div>'; return; }
-
-    // Get published titles from master save
-    const masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
-    const publishedTitles = new Set((masterSave.platform?.publishedCatalog || []).map(p => p.title));
-
-    list.innerHTML = '';
-    state.finishedCatalog.forEach(p => {
-        const avg = ((parseInt(p.stats.vis||1) + parseInt(p.stats.story||1) + parseInt(p.stats.vfx||1) + parseInt(p.stats.post||1) + parseInt(p.stats.music||1)) / 5);
-        const starVal = (avg / 15) * 5;
-        const fullStars = Math.floor(starVal);
-        const halfStar = (starVal - fullStars) >= 0.5 ? '½' : '';
-        const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-        const stars = '★'.repeat(fullStars) + halfStar + '☆'.repeat(Math.max(0, emptyStars));
-        const eps = p.episodes > 1 ? ` · ${p.episodes} eps` : '';
-        const isPublished = publishedTitles.has(p.title);
-        const weekLabel = p.completedWeek ? `Wk ${p.completedWeek}` : '';
-
-        list.innerHTML += `
-            <div class="catalog-card">
-                <div class="catalog-card-header">
-                    <div>
-                        <div class="catalog-card-title">${p.title}</div>
-                        <div class="catalog-card-meta">${p.type}${eps} · ${p.genre || 'Uncategorized'}</div>
+                    <div class="item-title">${p.title}</div>
+                    <div class="item-meta">Row: ${p.row} · ${p.featured ? '⭐ Featured' : 'Standard'}</div>
+                    <div class="item-freshness">
+                        <div class="item-fresh-bar"><div class="item-fresh-fill" style="width:${freshPct}%; background:${freshColor};"></div></div>
+                        <span class="freshness-pill ${freshInfo.cls}" style="padding:1px 6px; font-size:10px;">${freshInfo.label}</span>
+                        <span style="font-size:10px; color:var(--muted);">Wk ${p.weeksOnPlatform||0}</span>
                     </div>
-                    ${isPublished
-                        ? `<span class="published-badge">📺 Live</span>`
-                        : `<span class="vault-badge">🔒 Vault</span>`}
                 </div>
-                <div class="catalog-card-footer">
-                    <span class="catalog-stars">${stars}</span>
-                    ${weekLabel ? `<span class="catalog-week">· ${weekLabel}</span>` : ''}
-                </div>
+                <button class="btn-danger" onclick="unpublishProject('${p.title.replace(/'/g,"\\'")}')">Remove</button>
+            </div>`;
+        }).join('');
+    }
+    document.getElementById('published-count-badge').innerText = platform.publishedCatalog.length;
+
+    // Rows list
+    document.getElementById('rows-count-badge').innerText = platform.rows.length + ' rows';
+    document.getElementById('rows-list').innerHTML = platform.rows.map(r => `
+        <div class="row-item">
+            <div>
+                <strong>${r}</strong>
+                <span style="font-size:11px; color:var(--muted); margin-left:8px;">${platform.publishedCatalog.filter(p=>p.row===r).length} titles</span>
             </div>
-        `;
-    });
+            ${platform.rows.length > 1 ? `<button class="btn-danger" onclick="deleteRow('${r.replace(/'/g,"\\'")}')">Delete</button>` : ''}
+        </div>`).join('');
+
+    // Vault preview
+    const vaultPreview = document.getElementById('vault-preview-list');
+    if (vault.length === 0) {
+        vaultPreview.innerHTML = `<div class="empty-state"><div class="empty-icon">🎬</div><p>Finish projects in Studio to populate vault.</p></div>`;
+    } else {
+        vaultPreview.innerHTML = vault.map(p => {
+            const avg = Math.round(((parseInt(p.stats?.vis)||5)+(parseInt(p.stats?.story)||5)+(parseInt(p.stats?.vfx)||5))/3);
+            const imdb = (avg / 10 * 9.9).toFixed(1);
+            return `
+            <div class="vault-item">
+                <div>
+                    <div class="item-title">${p.title}</div>
+                    <div class="item-meta">${p.type} · IMDb ~${imdb}</div>
+                </div>
+                <span style="font-size:11px; color:var(--accent); font-weight:700;">READY</span>
+            </div>`;
+        }).join('');
+    }
+
+    // Update publish preview if something selected
+    updatePublishPreview();
 }
 
-function toast(msg, type = '') {
-    const container = document.getElementById('toast-container');
+function executeSearch() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const matches = q.length < 1 ? [] : platform.publishedCatalog.filter(p =>
+        p.title.toLowerCase().includes(q) || (p.type||'').toLowerCase().includes(q) || (p.genre||'').toLowerCase().includes(q)
+    );
+    const label = document.getElementById('search-count-label');
+    label.innerText = q.length > 0 ? `${matches.length} result${matches.length !== 1 ? 's' : ''}` : '';
+    if (q.length > 0 && matches.length === 0) {
+        document.getElementById('search-results').innerHTML = `<div class="no-results">No titles match "<strong>${q}</strong>"</div>`;
+    } else {
+        document.getElementById('search-results').innerHTML = matches.map(m => posterCardHTML(m)).join('');
+    }
+}
+
+function switchMode(mode, filter = 'all') {
+    ['viewer-shell','search-shell','admin-shell'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`${mode}-shell`).classList.remove('hidden');
+
+    let navId = 'nav-home';
+    if (mode === 'search') navId = 'nav-search';
+    else if (mode === 'admin') navId = 'nav-admin';
+    else {
+        if (filter === 'series') navId = 'nav-series';
+        else if (filter === 'movies') navId = 'nav-movies';
+        else if (filter === 'trending') navId = 'nav-trending';
+        else if (filter === 'mylist') navId = 'nav-mylist';
+        currentFilter = filter;
+        renderViewer();
+    }
+    if (mode === 'admin') renderAdmin();
+    document.getElementById(navId).classList.add('active');
+}
+
+function toast(msg, type = 'default') {
+    const c = document.getElementById('toast-container');
     const el = document.createElement('div');
-    el.className = 'toast' + (type ? ` toast-${type}` : '');
+    el.className = 'toast' + (type !== 'default' ? ' ' + type : '');
     el.innerText = msg;
-    container.appendChild(el);
-    setTimeout(() => el.remove(), 4200);
+    c.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
 }
 
-function saveGame(platformData = null, silent = false) {
-    let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
-    state = normalizeState(state);
-    // Preserve whichever budget/week is higher to avoid overwriting Netflix earnings.
-    if (masterSave.state) {
-        const latestState = normalizeState(masterSave.state);
-        if (latestState.budget > state.budget) state.budget = latestState.budget;
-        if (latestState.week > state.week) state.week = latestState.week;
-        if (latestState.talent.length > state.talent.length) state.talent = latestState.talent;
-        if (latestState.activeProjects.length > state.activeProjects.length) state.activeProjects = latestState.activeProjects;
-        if (latestState.finishedCatalog.length > state.finishedCatalog.length) state.finishedCatalog = latestState.finishedCatalog;
-    }
-    if (platformData) masterSave.platform = normalizePlatform(platformData);
-    masterSave.state = state;
-    masterSave.undoStack = undoStack;
-    localStorage.setItem('studioHubSave_v2', JSON.stringify(masterSave));
-    if (!silent) toast('💾 Game saved.', 'success');
-}
-
-function loadGame() {
-    const saved = localStorage.getItem('studioHubSave_v2');
-    if (saved) {
-        try {
-            let masterSave = JSON.parse(saved);
-            if (masterSave.state) {
-                state = normalizeState(masterSave.state);
-            }
-            undoStack = masterSave.undoStack || [];
-        } catch(e) { console.warn('Save corrupted, starting fresh.'); }
-    }
-}
-
-function resetGame() {
-    if (confirm('Reset all progress? This cannot be undone.')) {
-        localStorage.removeItem('studioHubSave_v2');
-        location.reload();
-    }
-}
+function renderAll() { renderViewer(); if (!document.getElementById('admin-shell').classList.contains('hidden')) renderAdmin(); }
 
 window.onload = init;
 </script>
