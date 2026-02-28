@@ -522,7 +522,13 @@ function loadGame() {
 }
 
 function saveGame() {
-    let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || { state: {} };
+    let masterSave;
+    try {
+        masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || { state: {} };
+    } catch (e) {
+        console.error("Failed to parse save data from localStorage in talent saveGame.", e);
+        masterSave = { state: {} };
+    }
     masterSave.state = normalizeState(masterSave.state);
     savedData.state = normalizeState(savedData.state);
     masterSave.state.talent = savedData.state.talent;
