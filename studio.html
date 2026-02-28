@@ -305,6 +305,8 @@
     <div class="top-bar-left">
         <div class="top-bar-logo">🎬 Studio Hub</div>
         <a class="back-link" href="index.html">← Dashboard</a>
+        <a class="back-link" href="talent.html" style="color:#ff8c00; border-color:rgba(255,140,0,0.3);">📋 Talent</a>
+        <a class="back-link" href="netflix.html" style="color:#E50914; border-color:rgba(229,9,20,0.3);">📺 StreamVault</a>
     </div>
     <div class="top-bar-stats">
         <div class="stat-chip">
@@ -460,6 +462,23 @@
                 <input type="range" id="proj-pace" min="1" max="5" value="3" oninput="updateCostPreview(); updatePaceLabel()" style="width: 100%;">
                 <div class="crunch-warning" id="crunch-warning">
                     🔥 Crunch mode active — talent risk increases and costs double. Use sparingly.
+                </div>
+            </div>
+
+            <div class="pace-section" style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+                <div class="pace-header">
+                    <span class="pace-label-text">Base Production Cost</span>
+                    <span class="pace-val" id="base-cost-val">$200,000 / unit</span>
+                </div>
+                <input type="range" id="proj-base-cost" min="10000" max="1000000" step="10000" value="200000"
+                    oninput="updateBaseCostLabel(); updateCostPreview()" style="width:100%;">
+                <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-top:4px;">
+                    <span>$10k — Indie</span>
+                    <span>$200k — Standard</span>
+                    <span>$1M — Prestige</span>
+                </div>
+                <div style="font-size:11px; color:var(--muted); margin-top:6px; line-height:1.4;">
+                    Scales the base production multiplier. Anime uses 1/8th of this value automatically.
                 </div>
             </div>
 
@@ -733,6 +752,21 @@ function populateDropdowns() {
 }
 
 // ===== MASTER MATH ENGINE (unchanged) =====
+function updateBaseCostLabel() {
+    const val = parseInt(document.getElementById('proj-base-cost').value) || 200000;
+    const labels = [
+        [10000,  49999,  'Indie'],
+        [50000,  149999, 'Low Budget'],
+        [150000, 249999, 'Standard'],
+        [250000, 499999, 'High Budget'],
+        [500000, 999999, 'Prestige'],
+        [1000000,1000000,'Ultra Prestige'],
+    ];
+    const tier = labels.find(([lo, hi]) => val >= lo && val <= hi);
+    const tierName = tier ? tier[2] : '';
+    document.getElementById('base-cost-val').innerText = '$' + val.toLocaleString() + ' / unit' + (tierName ? '  —  ' + tierName : '');
+}
+
 function computeCost() {
     const vis   = parseInt(document.getElementById('proj-vis').value)   || 1;
     const story = parseInt(document.getElementById('proj-story').value) || 1;
@@ -746,7 +780,8 @@ function computeCost() {
     let totalMin = hr * 60 + min;
     if (totalMin < 1) totalMin = 1;
     const totalHours = (totalMin / 60) * eps;
-    const k = (type === 'Anime') ? 25000 : 200000;
+    const baseCost = parseInt(document.getElementById('proj-base-cost')?.value) || 200000;
+    const k = (type === 'Anime') ? Math.round(baseCost / 8) : baseCost;
     const paceVal = parseInt(document.getElementById('proj-pace')?.value) || 3;
     const costMults = {1: 0.5, 2: 0.75, 3: 1.0, 4: 1.25, 5: 2.0};
     const paceCostMult = costMults[paceVal];
