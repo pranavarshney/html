@@ -691,6 +691,31 @@ function normalizeState(rawState = {}) {
         activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
         finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
     };
+    let masterSave;
+    try {
+        masterSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
+    } catch (e) {
+        console.error("Failed to parse save data from localStorage during persist.", e);
+        masterSave = {};
+    }
+
+function normalizePlatform(rawPlatform = {}) {
+    return {
+        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
+        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
+        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
+        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
+    };
+}
+
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
 }
 
 function normalizePlatform(rawPlatform = {}) {
@@ -804,8 +829,8 @@ function updatePrice(val) {
     document.getElementById('price-val').innerText = val;
     document.getElementById('stat-subprice').innerText = val;
     const warn = document.getElementById('churn-warn');
-    if (val > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
-    else if (val > 25) { warn.textContent = '🚨 Very high churn'; warn.className = 'churn-warning churn-warn'; }
+    if (val > 25) { warn.textContent = '🚨 Very high churn'; warn.className = 'churn-warning churn-warn'; }
+    else if (val > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
     else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
     recalcSubscribers();
     renderAdmin();
@@ -875,6 +900,7 @@ function confirmPublish() {
     const title = document.getElementById('vault-select').value;
     if (!title) return;
     const idx = studioSave.state.finishedCatalog.findIndex(p => p.title === title);
+    if (idx < 0) { toast('Project not found in vault.', 'warn'); return; }
     const project = studioSave.state.finishedCatalog.splice(idx, 1)[0];
     
     project.poster = document.getElementById('poster-url').value.trim() || null;
@@ -911,6 +937,7 @@ function updatePublishPreview() {
 
 function unpublishProject(title) {
     const idx = platform.publishedCatalog.findIndex(p => p.title === title);
+    if (idx < 0) { toast('Project is not currently published.', 'warn'); return; }
     const project = platform.publishedCatalog.splice(idx, 1)[0];
     studioSave.state.finishedCatalog.unshift(project);
     recalcSubscribers(); persistSave(true); renderAll();
@@ -1065,7 +1092,8 @@ function renderAdmin() {
     document.getElementById('price-val').innerText = platform.subPrice;
     document.getElementById('stat-subprice').innerText = platform.subPrice;
     const warn = document.getElementById('churn-warn');
-    if (platform.subPrice > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
+    if (platform.subPrice > 25) { warn.textContent = '🚨 Very high churn'; warn.className = 'churn-warning churn-warn'; }
+    else if (platform.subPrice > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
     else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
 
     // Vault select

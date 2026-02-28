@@ -387,6 +387,11 @@
             </div>
 
             <div class="form-group">
+                <label class="field-label">Base Production Unit ($20k–$1M)</label>
+                <input type="number" id="proj-base-unit" value="200000" min="20000" max="1000000" step="10000" oninput="updateCostPreview()">
+            </div>
+
+            <div class="form-group">
                 <label class="field-label">Title</label>
                 <input type="text" id="proj-title" placeholder="e.g., The Final Arc">
             </div>
@@ -575,6 +580,44 @@ let state = {
 };
 
 let undoStack = [];
+
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
+}
+
+function normalizePlatform(rawPlatform = {}) {
+    return {
+        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
+        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
+        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
+        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
+    };
+}
+
+function recalcPlatformSubscribers(platformData) {
+    let total = 0;
+    (platformData.publishedCatalog || []).forEach(p => {
+        const vis = parseInt(p.stats?.vis) || 1;
+        const story = parseInt(p.stats?.story) || 1;
+        const vfx = parseInt(p.stats?.vfx) || 1;
+        let base = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (p.episodes||1) * 0.05));
+        const age = p.weeksOnPlatform || 0;
+        const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
+        base = Math.floor(base * freshnessFactor);
+        if (p.featured) base = Math.floor(base * 1.2);
+        const priceFactor = Math.max(0.5, 1 - ((platformData.subPrice - 15) * 0.03));
+        base = Math.floor(base * priceFactor);
+        total += base;
+    });
+    platformData.subscribers = total;
+    return total;
+}
 
 function normalizeState(rawState = {}) {
     return {
