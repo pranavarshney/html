@@ -514,24 +514,29 @@ function loadGame() {
     const saved = localStorage.getItem('studioHubSave_v2');
     if (saved) {
         try {
-            let masterSave = JSON.parse(saved);
-            savedData = masterSave;
+            // FIX: Deep-copy so savedData is never a live reference to localStorage.
+            // Mutations won't accidentally bypass saveGame().
+            const masterSave = JSON.parse(saved);
+            savedData = JSON.parse(JSON.stringify(masterSave));
             savedData.state = normalizeState(savedData.state);
-        } catch(e) { console.warn("Could not parse save data. Creating new."); }
+        } catch(e) { console.warn("Could not parse save data. Starting fresh."); }
     }
 }
 
 function saveGame() {
+    // FIX: Read the master save fresh from localStorage each time so we never
+    // overwrite budget/week/projects that Studio or Netflix may have changed
+    // since this page loaded. We ONLY write back the talent array.
     let masterSave;
     try {
-        masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || { state: {} };
-    } catch (e) {
-        console.error("Failed to parse save data from localStorage in talent saveGame.", e);
-        masterSave = { state: {} };
+        const raw = localStorage.getItem('studioHubSave_v2');
+        masterSave = raw ? JSON.parse(raw) : {};
+    } catch(e) {
+        masterSave = {};
     }
-    masterSave.state = normalizeState(masterSave.state);
-    savedData.state = normalizeState(savedData.state);
-    masterSave.state.talent = savedData.state.talent;
+    if (!masterSave.state) masterSave.state = {};
+    // Only update talent — leave budget, week, activeProjects, finishedCatalog untouched
+    masterSave.state.talent = normalizeState(savedData.state).talent;
     localStorage.setItem('studioHubSave_v2', JSON.stringify(masterSave));
 }
 
