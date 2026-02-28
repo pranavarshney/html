@@ -381,15 +381,6 @@
                 <input type="number" id="proj-base-unit" value="200000" min="20000" max="1000000" step="10000" oninput="updateCostPreview()">
             </div>
 
-            <div class="form-group">
-                <label class="field-label">Base Production Unit ($20k–$1M)</label>
-                <input type="number" id="proj-base-unit" value="200000" min="20000" max="1000000" step="10000" oninput="updateCostPreview()">
-            </div>
-
-            <div class="form-group">
-                <label class="field-label">Base Production Unit ($20k–$1M)</label>
-                <input type="number" id="proj-base-unit" value="200000" min="20000" max="1000000" step="10000" oninput="updateCostPreview()">
-            </div>
 
             <div class="form-group">
                 <label class="field-label">Title</label>
@@ -580,158 +571,6 @@ let state = {
 };
 
 let undoStack = [];
-
-function normalizeState(rawState = {}) {
-    return {
-        week: Number.isFinite(rawState.week) ? rawState.week : 1,
-        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
-        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
-        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
-        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
-    };
-}
-
-function normalizePlatform(rawPlatform = {}) {
-    return {
-        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
-        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
-        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
-        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
-    };
-}
-
-function recalcPlatformSubscribers(platformData) {
-    let total = 0;
-    (platformData.publishedCatalog || []).forEach(p => {
-        const vis = parseInt(p.stats?.vis) || 1;
-        const story = parseInt(p.stats?.story) || 1;
-        const vfx = parseInt(p.stats?.vfx) || 1;
-        let base = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (p.episodes||1) * 0.05));
-        const age = p.weeksOnPlatform || 0;
-        const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
-        base = Math.floor(base * freshnessFactor);
-        if (p.featured) base = Math.floor(base * 1.2);
-        const priceFactor = Math.max(0.5, 1 - ((platformData.subPrice - 15) * 0.03));
-        base = Math.floor(base * priceFactor);
-        total += base;
-    });
-    platformData.subscribers = total;
-    return total;
-}
-
-function normalizeState(rawState = {}) {
-    return {
-        week: Number.isFinite(rawState.week) ? rawState.week : 1,
-        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
-        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
-        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
-        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
-    };
-}
-
-function normalizePlatform(rawPlatform = {}) {
-    return {
-        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
-        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
-        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
-        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
-    };
-}
-
-function recalcPlatformSubscribers(platformData) {
-    let total = 0;
-    (platformData.publishedCatalog || []).forEach(p => {
-        const vis = parseInt(p.stats?.vis) || 1;
-        const story = parseInt(p.stats?.story) || 1;
-        const vfx = parseInt(p.stats?.vfx) || 1;
-        let base = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (p.episodes||1) * 0.05));
-        const age = p.weeksOnPlatform || 0;
-        const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
-        base = Math.floor(base * freshnessFactor);
-        if (p.featured) base = Math.floor(base * 1.2);
-        const priceFactor = Math.max(0.5, 1 - ((platformData.subPrice - 15) * 0.03));
-        base = Math.floor(base * priceFactor);
-        total += base;
-    });
-    platformData.subscribers = total;
-    return total;
-}
-
-function normalizeState(rawState = {}) {
-    return {
-        week: Number.isFinite(rawState.week) ? rawState.week : 1,
-        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
-        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
-        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
-        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
-    };
-}
-
-function normalizePlatform(rawPlatform = {}) {
-    return {
-        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
-        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
-        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
-        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
-    };
-}
-
-function recalcPlatformSubscribers(platformData) {
-    let total = 0;
-    (platformData.publishedCatalog || []).forEach(p => {
-        const vis = parseInt(p.stats?.vis) || 1;
-        const story = parseInt(p.stats?.story) || 1;
-        const vfx = parseInt(p.stats?.vfx) || 1;
-        let base = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (p.episodes||1) * 0.05));
-        const age = p.weeksOnPlatform || 0;
-        const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
-        base = Math.floor(base * freshnessFactor);
-        if (p.featured) base = Math.floor(base * 1.2);
-        const priceFactor = Math.max(0.5, 1 - ((platformData.subPrice - 15) * 0.03));
-        base = Math.floor(base * priceFactor);
-        total += base;
-    });
-    platformData.subscribers = total;
-    return total;
-}
-
-function normalizeState(rawState = {}) {
-    return {
-        week: Number.isFinite(rawState.week) ? rawState.week : 1,
-        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
-        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
-        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
-        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
-    };
-}
-
-function normalizePlatform(rawPlatform = {}) {
-    return {
-        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
-        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
-        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
-        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
-    };
-}
-
-function recalcPlatformSubscribers(platformData) {
-    let total = 0;
-    (platformData.publishedCatalog || []).forEach(p => {
-        const vis = parseInt(p.stats?.vis) || 1;
-        const story = parseInt(p.stats?.story) || 1;
-        const vfx = parseInt(p.stats?.vfx) || 1;
-        let base = Math.floor(((Math.pow(vis,1.5) + Math.pow(story,1.5) + Math.pow(vfx,1.5)) * 2000) * (1 + (p.episodes||1) * 0.05));
-        const age = p.weeksOnPlatform || 0;
-        const freshnessFactor = Math.max(0.2, 1 - (age * 0.07));
-        base = Math.floor(base * freshnessFactor);
-        if (p.featured) base = Math.floor(base * 1.2);
-        const priceFactor = Math.max(0.5, 1 - ((platformData.subPrice - 15) * 0.03));
-        base = Math.floor(base * priceFactor);
-        total += base;
-    });
-    platformData.subscribers = total;
-    return total;
-}
 
 function normalizeState(rawState = {}) {
     return {
@@ -1266,7 +1105,15 @@ function toast(msg, type = '') {
 function saveGame(platformData = null, silent = false) {
     let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
     state = normalizeState(state);
-    // Always persist current Studio state as source-of-truth for studio progression.
+    // Preserve whichever budget/week is higher to avoid overwriting Netflix earnings.
+    if (masterSave.state) {
+        const latestState = normalizeState(masterSave.state);
+        if (latestState.budget > state.budget) state.budget = latestState.budget;
+        if (latestState.week > state.week) state.week = latestState.week;
+        if (latestState.talent.length > state.talent.length) state.talent = latestState.talent;
+        if (latestState.activeProjects.length > state.activeProjects.length) state.activeProjects = latestState.activeProjects;
+        if (latestState.finishedCatalog.length > state.finishedCatalog.length) state.finishedCatalog = latestState.finishedCatalog;
+    }
     if (platformData) masterSave.platform = normalizePlatform(platformData);
     masterSave.state = state;
     masterSave.undoStack = undoStack;
@@ -1280,43 +1127,6 @@ function loadGame() {
         try {
             let masterSave = JSON.parse(saved);
             if (masterSave.state) {
-                state = normalizeState(masterSave.state);
-            }
-            undoStack = masterSave.undoStack || [];
-        } catch(e) { console.warn('Save corrupted, starting fresh.'); }
-    }
-}
-function saveGame(platformData = null) {
-    let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
-    state = normalizeState(state);
-    // FIX: If Netflix has collected revenue since Studio last loaded, 
-    // localStorage will have a higher budget/week than our in-memory state.
-    // Preserve whichever budget is higher so Netflix earnings are never overwritten.
-    if (masterSave.state) {
-        const latestState = normalizeState(masterSave.state);
-        const latestBudget = latestState.budget;
-        const latestWeek = latestState.week;
-        if (latestBudget > state.budget) state.budget = latestBudget;
-        if (latestWeek > state.week) state.week = latestWeek;
-
-        // Preserve arrays with more complete data if this tab is stale.
-        if (latestState.talent.length > state.talent.length) state.talent = latestState.talent;
-        if (latestState.activeProjects.length > state.activeProjects.length) state.activeProjects = latestState.activeProjects;
-        if (latestState.finishedCatalog.length > state.finishedCatalog.length) state.finishedCatalog = latestState.finishedCatalog;
-    }
-    if (platformData) masterSave.platform = normalizePlatform(platformData);
-    masterSave.state = state;
-    masterSave.undoStack = undoStack;
-    localStorage.setItem('studioHubSave_v2', JSON.stringify(masterSave));
-    toast('💾 Game saved.', 'success');
-}
-
-function loadGame() {
-    const saved = localStorage.getItem('studioHubSave_v2');
-    if (saved) {
-        try {
-            let masterSave = JSON.parse(saved);
-          if (masterSave.state) {
                 state = normalizeState(masterSave.state);
             }
             undoStack = masterSave.undoStack || [];
