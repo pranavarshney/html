@@ -674,6 +674,44 @@ function normalizeState(rawState = {}) {
     };
 }
 
+function normalizePlatform(rawPlatform = {}) {
+    return {
+        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
+        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
+        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
+        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
+    };
+}
+
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
+}
+
+function normalizePlatform(rawPlatform = {}) {
+    return {
+        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
+        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
+        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
+        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
+    };
+}
+
+function normalizeState(rawState = {}) {
+    return {
+        week: Number.isFinite(rawState.week) ? rawState.week : 1,
+        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
+        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
+        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
+        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
+    };
+}
+
 function init() { loadGame(); recalcSubscribers(); renderAll(); }
 
 function loadGame() {
@@ -690,13 +728,21 @@ function loadGame() {
     studioSave.platform = platform;
 }
 
-function persistSave(saveState = false) {
+function persistSave() {
     let masterSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
 
-    masterSave.platform = platform;
-    if (saveState || !masterSave.state) {
-        masterSave.state = studioSave.state;
+    // Never let an older tab overwrite newer budget/week progress.
+    if (masterSave.state) {
+        const latestState = normalizeState(masterSave.state);
+        studioSave.state.budget = Math.max(studioSave.state.budget || 0, latestState.budget);
+        studioSave.state.week = Math.max(studioSave.state.week || 1, latestState.week);
+        if (latestState.talent.length > studioSave.state.talent.length) studioSave.state.talent = latestState.talent;
+        if (latestState.activeProjects.length > studioSave.state.activeProjects.length) studioSave.state.activeProjects = latestState.activeProjects;
+        if (latestState.finishedCatalog.length > studioSave.state.finishedCatalog.length) studioSave.state.finishedCatalog = latestState.finishedCatalog;
     }
+
+    masterSave.platform = platform;
+    masterSave.state = studioSave.state;
     localStorage.setItem(SAVE_KEY, JSON.stringify(masterSave));
 }
 
