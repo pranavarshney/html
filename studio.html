@@ -377,12 +377,6 @@
             </div>
 
             <div class="form-group">
-                <label class="field-label">Base Production Unit ($20k–$1M)</label>
-                <input type="number" id="proj-base-unit" value="200000" min="20000" max="1000000" step="10000" oninput="updateCostPreview()">
-            </div>
-
-
-            <div class="form-group">
                 <label class="field-label">Title</label>
                 <input type="text" id="proj-title" placeholder="e.g., The Final Arc">
             </div>
@@ -637,7 +631,6 @@ function updateUI() {
     if (nearFinish) btn.classList.add('pulse'); else btn.classList.remove('pulse');
 
     populateDropdowns();
-    refreshCastRows();
     renderRoster();
     renderActiveProjects();
     renderCatalog();
@@ -725,23 +718,6 @@ function addCastRow() {
     container.appendChild(row);
 }
 
-function refreshCastRows() {
-    const idleActors = state.talent.filter(t => t.role === 'Actor' && t.status === 'Idle');
-    document.querySelectorAll('.cast-row .actor-select').forEach(sel => {
-        const prev = sel.value;
-        let options = '<option value="">— Select Actor —</option>';
-        idleActors.forEach(a => {
-            options += `<option value="${a.id}" ${String(a.id) === prev ? 'selected' : ''}>${a.name} ($${a.salary.toLocaleString()})</option>`;
-        });
-        // Keep currently selected actor visible in case they are no longer idle.
-        if (prev && !idleActors.some(a => String(a.id) === prev)) {
-            const actor = state.talent.find(t => String(t.id) === prev);
-            if (actor) options += `<option value="${actor.id}" selected>${actor.name} ($${actor.salary.toLocaleString()})</option>`;
-        }
-        sel.innerHTML = options;
-    });
-}
-
 function populateDropdowns() {
     const dirDrop = document.getElementById('proj-director');
     const writDrop = document.getElementById('proj-writer');
@@ -751,7 +727,7 @@ function populateDropdowns() {
     state.talent.forEach(t => {
         if (t.role === 'Director' && t.status === 'Idle')
             dirDrop.innerHTML += `<option value="${t.id}" ${curDir == t.id ? 'selected' : ''}>${t.name} ($${t.salary.toLocaleString()})</option>`;
-        if (t.role === 'Writer')
+        if (t.role === 'Writer' && t.status === 'Idle')
             writDrop.innerHTML += `<option value="${t.id}" ${curWrit == t.id ? 'selected' : ''}>${t.name} ($${t.salary.toLocaleString()})</option>`;
     });
 }
@@ -770,8 +746,7 @@ function computeCost() {
     let totalMin = hr * 60 + min;
     if (totalMin < 1) totalMin = 1;
     const totalHours = (totalMin / 60) * eps;
-    const baseUnitInput = parseInt(document.getElementById('proj-base-unit')?.value);
-    const k = Math.min(1000000, Math.max(20000, Number.isFinite(baseUnitInput) ? baseUnitInput : 200000));
+    const k = (type === 'Anime') ? 25000 : 200000;
     const paceVal = parseInt(document.getElementById('proj-pace')?.value) || 3;
     const costMults = {1: 0.5, 2: 0.75, 3: 1.0, 4: 1.25, 5: 2.0};
     const paceCostMult = costMults[paceVal];
@@ -895,12 +870,7 @@ function startProduction() {
         const actorId = row.querySelector('.actor-select').value;
         if (actorId) involvedIds.push(parseInt(actorId));
     });
-    state.talent.forEach(t => {
-        if (involvedIds.includes(t.id) && t.role !== 'Writer') {
-            t.status = 'Working';
-            t.project = title;
-        }
-    });
+    state.talent.forEach(t => { if (involvedIds.includes(t.id)) { t.status = 'Working'; t.project = title; } });
     const type  = document.getElementById('proj-type').value;
     const genre = document.getElementById('proj-genre').value;
     const paceVal = parseInt(document.getElementById('proj-pace').value) || 3;
@@ -918,7 +888,6 @@ function startProduction() {
     document.getElementById('cast-container').innerHTML = '';
     addCastRow();
     updateUI();
-    saveGame(null, true);
 }
 
 function advanceWeek() {
@@ -946,7 +915,7 @@ function advanceWeek() {
             finished.push(fp);
             state.finishedCatalog.unshift(fp);
             state.talent.forEach(t => {
-                if (fp.involvedTalent.includes(t.id) && t.role !== 'Writer') { t.status = 'Idle'; t.project = ''; }
+                if (fp.involvedTalent.includes(t.id)) { t.status = 'Idle'; t.project = ''; }
             });
         }
     }
@@ -1102,23 +1071,48 @@ function toast(msg, type = '') {
     setTimeout(() => el.remove(), 4200);
 }
 
-function saveGame(platformData = null, silent = false) {
+function saveGame(platformData = null) {
     let masterSave = JSON.parse(localStorage.getItem('studioHubSave_v2')) || {};
     state = normalizeState(state);
-    // Preserve whichever budget/week is higher to avoid overwriting Netflix earnings.
+    // FIX: If Netflix has collected revenue since Studio last loaded,
+    // localStorage will have a higher budget/week than our in-memory state.
+    // Only accept a higher stored budget if the difference is plausibly streaming
+    // income — this prevents a stale save from reversing production spending.
     if (masterSave.state) {
         const latestState = normalizeState(masterSave.state);
-        if (latestState.budget > state.budget) state.budget = latestState.budget;
-        if (latestState.week > state.week) state.week = latestState.week;
-        if (latestState.talent.length > state.talent.length) state.talent = latestState.talent;
-        if (latestState.activeProjects.length > state.activeProjects.length) state.activeProjects = latestState.activeProjects;
-        if (latestState.finishedCatalog.length > state.finishedCatalog.length) state.finishedCatalog = latestState.finishedCatalog;
+        const latestBudget = latestState.budget;
+        const latestWeek = latestState.week;
+
+        const budgetDiff = latestBudget - state.budget;
+        const subs = masterSave.platform?.subscribers || 0;
+        const subPrice = masterSave.platform?.subPrice || 15;
+        const maxPlausibleStreamIncome = (subs * subPrice) * 2; // 2-week ceiling
+
+        // Only restore from storage if the increase looks like streaming revenue,
+        // not a full reset (e.g. going from $30M back to $50M default).
+        if (budgetDiff > 0 && budgetDiff <= maxPlausibleStreamIncome) {
+            state.budget = latestBudget;
+        }
+
+        if (latestWeek > state.week) state.week = latestWeek;
+
+        // Preserve arrays with more complete data if this tab is stale.
+        // Use a smarter merge: prefer the array that has MORE unique IDs,
+        // not just the longer one, to avoid ghost-resurrecting deleted entries.
+        const mergeArrays = (current, stored, key = 'id') => {
+            const currentIds = new Set(current.map(x => x[key]));
+            const stored_extra = stored.filter(x => !currentIds.has(x[key]));
+            return [...current, ...stored_extra];
+        };
+        state.talent = mergeArrays(state.talent, latestState.talent);
+        state.activeProjects = mergeArrays(state.activeProjects, latestState.activeProjects);
+        state.finishedCatalog = mergeArrays(state.finishedCatalog, latestState.finishedCatalog, 'title');
     }
     if (platformData) masterSave.platform = normalizePlatform(platformData);
     masterSave.state = state;
     masterSave.undoStack = undoStack;
     localStorage.setItem('studioHubSave_v2', JSON.stringify(masterSave));
-    if (!silent) toast('💾 Game saved.', 'success');
+    toast('💾 Game saved.', 'success');
 }
 
 function loadGame() {
