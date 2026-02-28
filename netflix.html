@@ -724,10 +724,15 @@ function persistSave() {
         };
         studioSave.state.talent = mergeById(studioSave.state.talent, latestState.talent);
         studioSave.state.activeProjects = mergeById(studioSave.state.activeProjects, latestState.activeProjects);
-        // FIX: finishedCatalog uses title as key since projects may lack unique IDs.
-        // Crucially: current array (post-splice) is authoritative — stored items only
-        // added if genuinely missing, so a just-published title stays removed.
-        studioSave.state.finishedCatalog = mergeById(studioSave.state.finishedCatalog, latestState.finishedCatalog, 'title');
+        // FIX: Do NOT merge finishedCatalog from localStorage here.
+        // The in-memory array is always authoritative in netflix.html because
+        // confirmPublish() splices titles out of it. If we merge from storage,
+        // we restore the just-removed title before the write completes —
+        // putting it in both finishedCatalog AND publishedCatalog simultaneously,
+        // which is exactly the infinite-publish / shows-as-unreleased bug.
+        // finishedCatalog is only mutated by studio.html; netflix only removes from it.
+        // So we write our current array as-is and let studio.html's saveGame handle
+        // adding newly finished projects via its own merge on next save.
     }
 
     masterSave.platform = platform;
@@ -802,9 +807,20 @@ function updatePrice(val) {
 }
 
 function collectRevenue() {
-    // Load fresh game data to prevent tab desync
-    loadGame();
-    // Recalc subscribers NOW (after fresh load) so income uses the correct count
+    // FIX: Surgical budget/week sync only — never reload full game state here.
+    // A full loadGame() would restore finishedCatalog from disk, undoing any
+    // publish splice and causing the infinite-publish / shows-as-unreleased bug.
+    try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (raw) {
+            const latest = JSON.parse(raw);
+            if (latest.state) {
+                if (latest.state.budget > studioSave.state.budget) studioSave.state.budget = latest.state.budget;
+                if (latest.state.week > studioSave.state.week) studioSave.state.week = latest.state.week;
+            }
+        }
+    } catch(e) { console.warn('Could not sync budget before revenue collect.', e); }
+
     recalcSubscribers();
 
     const income = platform.subscribers * platform.subPrice;
