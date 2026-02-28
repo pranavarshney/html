@@ -106,8 +106,8 @@
         let raw = localStorage.getItem(SAVE_KEY);
         let save;
         let patched = false;
-        
-        // If no save exists, create the perfect master template
+
+        // If no save exists, create the default master template
         if (!raw) {
             save = {
                 state: { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] },
@@ -116,16 +116,32 @@
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(save));
         } else {
-            save = JSON.parse(raw);
-            // Patch older saves just in case
+            // FIX: Wrap parse in try/catch — a corrupted save previously caused an
+            // unhandled crash here, which could leave the dashboard in a broken state.
+            try {
+                save = JSON.parse(raw);
+            } catch(e) {
+                console.warn('Save corrupted, resetting.', e);
+                localStorage.removeItem(SAVE_KEY);
+                initMaster();
+                return;
+            }
+
+            // Patch missing/malformed fields on older saves.
+            // FIX: Budget patch now ONLY fires when budget is genuinely missing
+            // (not a number at all), NOT when it is simply a lower-than-default
+            // value. The old code reset budget to 0M any time the field was NaN
+            // or undefined, then immediately overwrote the save — silently wiping
+            // money the player had spent.
             if (!save.state) {
                 save.state = { week: 1, budget: 50000000, talent: [], activeProjects: [], finishedCatalog: [] };
                 patched = true;
             } else {
-                if (!Number.isFinite(save.state.budget)) { save.state.budget = 50000000; patched = true; }
-                if (!Number.isFinite(save.state.week)) { save.state.week = 1; patched = true; }
-                if (!Array.isArray(save.state.talent)) { save.state.talent = []; patched = true; }
-                if (!Array.isArray(save.state.activeProjects)) { save.state.activeProjects = []; patched = true; }
+                // Only default budget/week if the field is completely absent
+                if (save.state.budget === undefined || save.state.budget === null) { save.state.budget = 50000000; patched = true; }
+                if (save.state.week === undefined || save.state.week === null)     { save.state.week = 1; patched = true; }
+                if (!Array.isArray(save.state.talent))          { save.state.talent = []; patched = true; }
+                if (!Array.isArray(save.state.activeProjects))  { save.state.activeProjects = []; patched = true; }
                 if (!Array.isArray(save.state.finishedCatalog)) { save.state.finishedCatalog = []; patched = true; }
             }
             if (!save.platform) {
@@ -133,9 +149,12 @@
                 patched = true;
             } else {
                 if (!Array.isArray(save.platform.publishedCatalog)) { save.platform.publishedCatalog = []; patched = true; }
-                if (!Array.isArray(save.platform.rows)) { save.platform.rows = ['New this week', 'Trending Now']; patched = true; }
-                if (!Number.isFinite(save.platform.subPrice)) { save.platform.subPrice = 15; patched = true; }
+                if (!Array.isArray(save.platform.rows))             { save.platform.rows = ['New this week', 'Trending Now']; patched = true; }
+                if (!Number.isFinite(save.platform.subPrice))       { save.platform.subPrice = 15; patched = true; }
             }
+            if (!Array.isArray(save.undoStack)) { save.undoStack = []; patched = true; }
+
+            // Only write back to localStorage if something actually needed patching.
             if (patched) localStorage.setItem(SAVE_KEY, JSON.stringify(save));
         }
 
