@@ -691,7 +691,13 @@ function normalizeState(rawState = {}) {
         activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
         finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
     };
-}
+    let masterSave;
+    try {
+        masterSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
+    } catch (e) {
+        console.error("Failed to parse save data from localStorage during persist.", e);
+        masterSave = {};
+    }
 
 function normalizePlatform(rawPlatform = {}) {
     return {
