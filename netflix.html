@@ -674,68 +674,6 @@ function normalizeState(rawState = {}) {
     };
 }
 
-function normalizePlatform(rawPlatform = {}) {
-    return {
-        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
-        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
-        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
-        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
-    };
-}
-
-function normalizeState(rawState = {}) {
-    return {
-        week: Number.isFinite(rawState.week) ? rawState.week : 1,
-        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
-        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
-        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
-        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
-    };
-    let masterSave;
-    try {
-        masterSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
-    } catch (e) {
-        console.error("Failed to parse save data from localStorage during persist.", e);
-        masterSave = {};
-    }
-
-function normalizePlatform(rawPlatform = {}) {
-    return {
-        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
-        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
-        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
-        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
-    };
-}
-
-function normalizeState(rawState = {}) {
-    return {
-        week: Number.isFinite(rawState.week) ? rawState.week : 1,
-        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
-        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
-        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
-        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
-    };
-}
-
-function normalizePlatform(rawPlatform = {}) {
-    return {
-        subscribers: Number.isFinite(rawPlatform.subscribers) ? rawPlatform.subscribers : 0,
-        subPrice: Number.isFinite(rawPlatform.subPrice) ? rawPlatform.subPrice : 15,
-        rows: Array.isArray(rawPlatform.rows) && rawPlatform.rows.length ? rawPlatform.rows : ['New this week', 'Trending Now'],
-        publishedCatalog: Array.isArray(rawPlatform.publishedCatalog) ? rawPlatform.publishedCatalog : []
-    };
-}
-
-function normalizeState(rawState = {}) {
-    return {
-        week: Number.isFinite(rawState.week) ? rawState.week : 1,
-        budget: Number.isFinite(rawState.budget) ? rawState.budget : 50000000,
-        talent: Array.isArray(rawState.talent) ? rawState.talent : [],
-        activeProjects: Array.isArray(rawState.activeProjects) ? rawState.activeProjects : [],
-        finishedCatalog: Array.isArray(rawState.finishedCatalog) ? rawState.finishedCatalog : []
-    };
-}
 
 function init() { loadGame(); recalcSubscribers(); renderAll(); }
 
@@ -768,6 +706,7 @@ function persistSave() {
 
     masterSave.platform = platform;
     masterSave.state = studioSave.state;
+    masterSave.undoStack = studioSave.undoStack || [];
     localStorage.setItem(SAVE_KEY, JSON.stringify(masterSave));
 }
 
@@ -834,7 +773,7 @@ function updatePrice(val) {
     else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
     recalcSubscribers();
     renderAdmin();
-    persistSave(false);
+    persistSave();
 }
 
 function collectRevenue() {
@@ -862,7 +801,7 @@ function collectRevenue() {
             (studioSave.state.talent || []).forEach(t => { if ((fp.involvedTalent || []).includes(t.id)) { t.status = 'Idle'; t.project = ''; } });
         }
     }
-    persistSave(true); renderAll();
+    persistSave(); renderAll();
     toast(`💰 Collected $${income.toLocaleString()}!`, 'success');
 }
 
@@ -916,7 +855,7 @@ function confirmPublish() {
     }
 
     platform.publishedCatalog.unshift(project);
-    recalcSubscribers(); persistSave(true); renderAll();
+    recalcSubscribers(); persistSave(); renderAll();
     
     document.getElementById('poster-url').value = '';
     document.getElementById('feature-flag').checked = false;
@@ -940,13 +879,13 @@ function unpublishProject(title) {
     if (idx < 0) { toast('Project is not currently published.', 'warn'); return; }
     const project = platform.publishedCatalog.splice(idx, 1)[0];
     studioSave.state.finishedCatalog.unshift(project);
-    recalcSubscribers(); persistSave(true); renderAll();
+    recalcSubscribers(); persistSave(); renderAll();
     toast(`"${title}" moved back to vault.`);
 }
 
 function createRow() {
     const name = document.getElementById('new-row-input').value.trim();
-    if (name && !platform.rows.includes(name)) { platform.rows.push(name); persistSave(false); renderAll(); }
+    if (name && !platform.rows.includes(name)) { platform.rows.push(name); persistSave(); renderAll(); }
     document.getElementById('new-row-input').value = '';
 }
 
@@ -958,7 +897,7 @@ function deleteRow(name) {
     }
     platform.publishedCatalog.filter(p => p.row === name).forEach(p => p.row = platform.rows.filter(r => r !== name)[0]);
     platform.rows = platform.rows.filter(r => r !== name);
-    persistSave(false); renderAll();
+    persistSave(); renderAll();
 }
 
 function renderViewer() {
