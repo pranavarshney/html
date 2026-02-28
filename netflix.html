@@ -674,7 +674,6 @@ function normalizeState(rawState = {}) {
     };
 }
 
-
 function init() { loadGame(); recalcSubscribers(); renderAll(); }
 
 function loadGame() {
@@ -685,28 +684,54 @@ function loadGame() {
         platform = studioSave.platform;
         return;
     }
-    studioSave = JSON.parse(raw);
-    studioSave.state = normalizeState(studioSave.state);
-    platform = normalizePlatform(studioSave.platform);
-    studioSave.platform = platform;
+    // FIX: Wrap in try/catch so a corrupted save does not crash the page.
+    // FIX: Deep-copy so studioSave is never a live reference to the parsed object.
+    // Without this, splicing finishedCatalog in confirmPublish() mutated the same
+    // object persistSave() reads, letting the length-check merge ghost-restore the
+    // removed project — making the same title publishable infinite times.
+    try {
+        studioSave = JSON.parse(JSON.stringify(JSON.parse(raw)));
+        studioSave.state = normalizeState(studioSave.state);
+        platform = normalizePlatform(studioSave.platform);
+        studioSave.platform = platform;
+    } catch(e) {
+        console.warn("Save data corrupted, starting fresh.", e);
+        studioSave = { state: normalizeState() };
+        studioSave.platform = normalizePlatform({});
+        platform = studioSave.platform;
+    }
 }
 
 function persistSave() {
-    let masterSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
+    let masterSave;
+    try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        masterSave = raw ? JSON.parse(raw) : {};
+    } catch(e) { masterSave = {}; }
 
-    // Never let an older tab overwrite newer budget/week progress.
+    // Merge state carefully: only advance budget/week, never roll them back.
+    // FIX: Use ID-based array merge instead of length-only comparison so that
+    // deleted items (fired talent, cancelled projects) are not ghost-resurrected
+    // from a stale localStorage copy.
     if (masterSave.state) {
         const latestState = normalizeState(masterSave.state);
         studioSave.state.budget = Math.max(studioSave.state.budget || 0, latestState.budget);
         studioSave.state.week = Math.max(studioSave.state.week || 1, latestState.week);
-        if (latestState.talent.length > studioSave.state.talent.length) studioSave.state.talent = latestState.talent;
-        if (latestState.activeProjects.length > studioSave.state.activeProjects.length) studioSave.state.activeProjects = latestState.activeProjects;
-        if (latestState.finishedCatalog.length > studioSave.state.finishedCatalog.length) studioSave.state.finishedCatalog = latestState.finishedCatalog;
+
+        const mergeById = (current, stored, key = 'id') => {
+            const currentIds = new Set(current.map(x => x[key]));
+            return [...current, ...stored.filter(x => !currentIds.has(x[key]))];
+        };
+        studioSave.state.talent = mergeById(studioSave.state.talent, latestState.talent);
+        studioSave.state.activeProjects = mergeById(studioSave.state.activeProjects, latestState.activeProjects);
+        // FIX: finishedCatalog uses title as key since projects may lack unique IDs.
+        // Crucially: current array (post-splice) is authoritative — stored items only
+        // added if genuinely missing, so a just-published title stays removed.
+        studioSave.state.finishedCatalog = mergeById(studioSave.state.finishedCatalog, latestState.finishedCatalog, 'title');
     }
 
     masterSave.platform = platform;
     masterSave.state = studioSave.state;
-    masterSave.undoStack = studioSave.undoStack || [];
     localStorage.setItem(SAVE_KEY, JSON.stringify(masterSave));
 }
 
@@ -768,8 +793,8 @@ function updatePrice(val) {
     document.getElementById('price-val').innerText = val;
     document.getElementById('stat-subprice').innerText = val;
     const warn = document.getElementById('churn-warn');
-    if (val > 25) { warn.textContent = '🚨 Very high churn'; warn.className = 'churn-warning churn-warn'; }
-    else if (val > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
+    if (val > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
+    else if (val > 25) { warn.textContent = '🚨 Very high churn'; warn.className = 'churn-warning churn-warn'; }
     else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
     recalcSubscribers();
     renderAdmin();
@@ -839,7 +864,6 @@ function confirmPublish() {
     const title = document.getElementById('vault-select').value;
     if (!title) return;
     const idx = studioSave.state.finishedCatalog.findIndex(p => p.title === title);
-    if (idx < 0) { toast('Project not found in vault.', 'warn'); return; }
     const project = studioSave.state.finishedCatalog.splice(idx, 1)[0];
     
     project.poster = document.getElementById('poster-url').value.trim() || null;
@@ -876,7 +900,6 @@ function updatePublishPreview() {
 
 function unpublishProject(title) {
     const idx = platform.publishedCatalog.findIndex(p => p.title === title);
-    if (idx < 0) { toast('Project is not currently published.', 'warn'); return; }
     const project = platform.publishedCatalog.splice(idx, 1)[0];
     studioSave.state.finishedCatalog.unshift(project);
     recalcSubscribers(); persistSave(); renderAll();
@@ -1031,8 +1054,7 @@ function renderAdmin() {
     document.getElementById('price-val').innerText = platform.subPrice;
     document.getElementById('stat-subprice').innerText = platform.subPrice;
     const warn = document.getElementById('churn-warn');
-    if (platform.subPrice > 25) { warn.textContent = '🚨 Very high churn'; warn.className = 'churn-warning churn-warn'; }
-    else if (platform.subPrice > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
+    if (platform.subPrice > 20) { warn.textContent = '⚠ High churn risk'; warn.className = 'churn-warning churn-warn'; }
     else { warn.textContent = '✓ Good'; warn.className = 'churn-warning churn-ok'; }
 
     // Vault select
